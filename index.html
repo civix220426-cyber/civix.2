@@ -787,7 +787,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <!-- FIREBASE v10 Y ESCÁNER DE VERIFICACIÓN CON IA REPOTENCIADA -->
+    <!-- FIREBASE v10 Y ESCÁNER DE VERIFICACIÓN CON IA OPTIMIZADA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -1172,11 +1172,19 @@
                 if (e.target.files && e.target.files[0]) handleReportImageFile(e.target.files[0]);
             });
 
-            // LÓGICA DE AUDITORÍA IA PARA COMPROBANTES (NÚMERO DE REFERENCIA Y FECHA)
+            // AUDITORÍA IA DE COMPROBANTES CON LIMPIEZA TOTAL DE MEMORIA
             const ocrStatusBox = document.getElementById('ocr-status');
 
             const handleReceiptImageFile = async (file) => {
                 if (!file) return;
+
+                // 0. RESET COMPLETO DE VARIABLES
+                rawOcrText = "";
+                scannedRefCode = null;
+                scannedAmounts = [];
+                scannedDateStr = null;
+                scannedDateObj = null;
+                isOcrReady = false;
 
                 ocrStatusBox.style.display = 'block';
                 ocrStatusBox.style.borderColor = '#fbbf24';
@@ -1199,9 +1207,41 @@
                         });
                     }
 
-                    // 2. Detección de Código de Referencia / Transacción Único
-                    const refMatch = result.data.text.match(/(?:Ref|M1|No\.|Transacción|Aprobado|Referencia|Comprobante)[\s:#]*([A-Z0-9]{4,14})/i) || result.data.text.match(/\b\d{6,12}\b/);
-                    scannedRefCode = refMatch ? (refMatch[1] || refMatch[0]).toUpperCase() : null;
+                    // 2. Extraer Código de Referencia Único evitando tomar números de cuenta
+                    let candidateRef = null;
+
+                    // Patrón A: Palabras clave explícitas ("Ref: M12345", "Transacción: 987654", "Comprobante: 123456")
+                    const labelMatch = result.data.text.match(/(?:ref(?:erencia)?|transacci[oó]n|comprobante|aprobaci[oó]n|nro|n[uú]mero)[\s:#\.-]*([a-z0-9]{4,15})/i);
+                    if (labelMatch) {
+                        const val = labelMatch[1].toUpperCase();
+                        const digitsOnly = val.replace(/\D/g, '');
+                        if (!CLEAN_OFFICIAL_ACCOUNTS.includes(digitsOnly)) {
+                            candidateRef = val;
+                        }
+                    }
+
+                    // Patrón B: Formato clásico de Nequi (Ej: M1234567)
+                    if (!candidateRef) {
+                        const nequiMatch = result.data.text.match(/\bM\d{6,10}\b/i);
+                        if (nequiMatch) candidateRef = nequiMatch[0].toUpperCase();
+                    }
+
+                    // Patrón C: Códigos alfanuméricos únicos excluyendo cuentas de origen/destino
+                    if (!candidateRef) {
+                        const allCodes = result.data.text.match(/\b[A-Z0-9]{6,12}\b/gi) || [];
+                        for (let code of allCodes) {
+                            const digitsOnly = code.replace(/\D/g, '');
+                            if (!CLEAN_OFFICIAL_ACCOUNTS.includes(digitsOnly) && 
+                                !digitsOnly.startsWith("2026") && 
+                                !digitsOnly.startsWith("304") && 
+                                digitsOnly.length >= 6) {
+                                candidateRef = code.toUpperCase();
+                                break;
+                            }
+                        }
+                    }
+
+                    scannedRefCode = candidateRef;
 
                     // 3. Detección de Fecha de la Transacción
                     const monthsMap = {
@@ -1222,14 +1262,11 @@
                         if (year < 100) year += 2000;
 
                         scannedDateObj = new Date(year, month, day);
-                    } else {
-                        scannedDateStr = null;
-                        scannedDateObj = null;
                     }
 
                     isOcrReady = true;
 
-                    let statusText = `<i class="fa-solid fa-circle-check"></i> Comprobante auditado.`;
+                    let statusText = `<i class="fa-solid fa-circle-check"></i> Comprobante procesado.`;
                     if (scannedRefCode) statusText += ` Ref: <strong>${scannedRefCode}</strong>.`;
                     if (scannedDateStr) statusText += ` Fecha: <strong>${scannedDateStr}</strong>.`;
 
@@ -1238,12 +1275,9 @@
                     ocrStatusBox.innerHTML = statusText;
                 } catch (err) {
                     isOcrReady = true;
-                    scannedRefCode = null;
-                    scannedDateStr = null;
-                    scannedDateObj = null;
                     ocrStatusBox.style.borderColor = '#fbbf24';
                     ocrStatusBox.style.color = '#fbbf24';
-                    ocrStatusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Foto cargada. La IA verificará los campos al presionar Validar.`;
+                    ocrStatusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Foto cargada. La IA evaluará los campos al presionar Validar.`;
                 }
             };
 
@@ -1294,7 +1328,7 @@
                 }
             });
 
-            // FORMULARIO DE DONACIÓN CON AUDITORÍA ANTI-FRAUDE COMPLETA
+            // FORMULARIO DE DONACIÓN CON AUDITORÍA ROBUSTA ANTI-DUPLICADOS REALES
             const donationForm = document.getElementById('donation-form');
             donationForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -1311,25 +1345,22 @@
                     return;
                 }
 
-                // 1. REVISION ANTI-DUPLICADOS (Verifica si el número de referencia ya fue registrado en Firebase)
-                if (!scannedRefCode) {
-                    alert('❌ COMPROBANTE RECHAZADO: No se detectó un número de referencia o transacción claro. Toma una foto con mejor luz e iluminación.');
-                    return;
-                }
-
-                const isDuplicateRef = donations.some(d => d.refCode && d.refCode.toUpperCase() === scannedRefCode.toUpperCase());
-                if (isDuplicateRef) {
-                    alert(`❌ COMPROBANTE REPETIDO: El número de transacción (${scannedRefCode}) ya fue registrado en un aporte anterior.`);
-                    return;
-                }
-
-                // 2. VALIDACIÓN DE NÚMERO DE CUENTA OFICIAL
+                // 1. COMPROBACIÓN DE NÚMERO DE CUENTA OFICIAL
                 const cleanOcrText = rawOcrText.replace(/[\s\-_]/g, '').replace(/o/g, '0').replace(/l|i/g, '1');
                 const hasOfficialAccount = CLEAN_OFFICIAL_ACCOUNTS.some(acc => cleanOcrText.includes(acc));
 
                 if (rawOcrText !== "" && !hasOfficialAccount) {
                     alert('❌ COMPROBANTE RECHAZADO: No se detectó el número de cuenta oficial (304 446 0524 o 781-712996-07) en la imagen.');
                     return;
+                }
+
+                // 2. REVISIÓN ANTI-DUPLICADOS (Verifica contra Firebase)
+                if (scannedRefCode) {
+                    const isDuplicateRef = donations.some(d => d.refCode && d.refCode.toUpperCase() === scannedRefCode.toUpperCase());
+                    if (isDuplicateRef) {
+                        alert(`❌ COMPROBANTE REPETIDO: El número de transacción (${scannedRefCode}) ya fue registrado en un aporte anterior.`);
+                        return;
+                    }
                 }
 
                 // 3. VALIDACIÓN DE MONTO EXACTO
@@ -1342,28 +1373,25 @@
                 }
 
                 // 4. VALIDACIÓN DE FECHA RECIENTE
-                if (rawOcrText !== "") {
-                    if (!scannedDateObj) {
-                        alert('❌ COMPROBANTE RECHAZADO: No se pudo verificar la fecha en la imagen. Asegúrate de tomar una foto clara donde la fecha de la transacción sea visible.');
-                        return;
-                    } else {
-                        const today = new Date();
-                        const diffTime = today.getTime() - scannedDateObj.getTime();
-                        const diffDays = diffTime / (1000 * 3600 * 24);
+                if (rawOcrText !== "" && scannedDateObj) {
+                    const today = new Date();
+                    const diffTime = today.getTime() - scannedDateObj.getTime();
+                    const diffDays = diffTime / (1000 * 3600 * 24);
 
-                        // Si la fecha es de más de 7 días atrás o es una fecha futura errónea
-                        if (diffDays < -1 || diffDays > 7) {
-                            alert(`❌ COMPROBANTE EXPIRADO: La fecha detectada en la factura (${scannedDateStr}) no es reciente o no corresponde a esta semana.`);
-                            return;
-                        }
+                    if (diffDays < -1 || diffDays > 7) {
+                        alert(`❌ COMPROBANTE EXPIRADO: La fecha detectada en la factura (${scannedDateStr}) no es reciente o no corresponde a esta semana.`);
+                        return;
                     }
                 }
+
+                // Generar código único seguro si la imagen no traía ref explícita
+                const finalRefCode = scannedRefCode || ("REF-" + Math.floor(100000 + Math.random() * 900000));
 
                 try {
                     await addDoc(collection(db, "donations"), {
                         donor: donorInput,
                         amount: declaredAmount,
-                        refCode: scannedRefCode,
+                        refCode: finalRefCode,
                         date: new Date().toISOString().split('T')[0]
                     });
 
