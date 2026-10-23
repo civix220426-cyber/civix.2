@@ -411,6 +411,7 @@
             padding: 6px 12px;
             border-radius: 6px;
             font-size: 12px;
+            cursor: pointer;
         }
 
         .location-info {
@@ -557,7 +558,7 @@
             </div>
 
             <div class="form-group">
-                <label for="admin-password">Contraseña (admin123)</label>
+                <label for="admin-password">Contraseña de Administrador</label>
                 <input type="password" id="admin-password" placeholder="Contraseña...">
             </div>
 
@@ -572,7 +573,7 @@
     <div id="admin-dashboard-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true">
         <div class="modal-card-admin">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                <h2 style="font-size: 16px; color: #ffffff;"><i class="fa-solid fa-user-shield" style="color: var(--accent);"></i> Panel Admin</h2>
+                <h2 style="font-size: 16px; color: #ffffff;"><i class="fa-solid fa-user-shield" style="color: var(--accent);"></i> Panel de Control Admin</h2>
                 <button type="button" id="closeAdminDashboardBtn" class="btn-danger">Cerrar ✕</button>
             </div>
 
@@ -585,8 +586,11 @@
                     <button type="button" id="savePctBtn" class="btn-primary" style="margin-top: 10px; background: var(--accent); padding: 10px;">Guardar Porcentajes</button>
                 </div>
 
-                <h3 style="font-size: 13px; color: var(--text-main); margin-top: 10px;">Descarga de Reportes por Sección</h3>
-                <div id="admin-reports-grouped-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                <h3 style="font-size: 13px; color: var(--text-main); margin-top: 10px;">Gestión y Descarga de Reportes por Secciones</h3>
+                <div id="admin-reports-grouped-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+
+                <h3 style="font-size: 13px; color: var(--text-main); margin-top: 15px;">Gestión de Aportes Registrados</h3>
+                <div id="admin-donations-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
             </div>
         </div>
     </div>
@@ -802,7 +806,7 @@
 
         let compressedReportImg = null;
 
-        // FUNCIÓN DE COMPRESIÓN ULTRA AGRESIVA (Garantiza pesar menos de 100KB para entrar en Firebase gratis)
+        // COMPRESIÓN DE IMÁGENES LIGERA
         function compressImage(file, maxWidth = 350, quality = 0.5) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -926,9 +930,9 @@
                         locStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> <strong>GPS del dispositivo detectado:</strong> ${selectedCoords.lat.toFixed(4)}, ${selectedCoords.lng.toFixed(4)}`;
                     },
                     (error) => {
-                        let msg = "Asegúrate de activar la Ubicación / GPS en la barra de notificaciones de tu celular.";
+                        let msg = "Asegúrate de activar la Ubicación / GPS en la barra de notificaciones.";
                         if (error.code === error.PERMISSION_DENIED) {
-                            msg = "Permiso denegado. Concede permiso de ubicación al navegador o toca el mapa.";
+                            msg = "Permiso denegado. Concede permiso de ubicación o toca el mapa.";
                         }
                         locStatus.style.background = 'rgba(239, 68, 68, 0.15)';
                         locStatus.style.borderColor = 'var(--danger)';
@@ -1105,7 +1109,6 @@
                 });
             });
 
-            // CARGA DE FOTO CON COMPRESIÓN MÁXIMA
             const imgInput = document.getElementById('report-img');
             const previewBox = document.getElementById('img-preview-box');
             const preview = document.getElementById('img-preview');
@@ -1145,7 +1148,6 @@
                 }
             });
 
-            // OCR Comprobante
             const receiptInput = document.getElementById('receipt-img');
             const ocrStatusBox = document.getElementById('ocr-status');
 
@@ -1187,7 +1189,6 @@
                 }
             });
 
-            // Guardar Reporte
             const reportForm = document.getElementById('report-form');
             reportForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -1227,7 +1228,6 @@
                 }
             });
 
-            // Guardar Donación
             const donationForm = document.getElementById('donation-form');
             donationForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -1270,7 +1270,6 @@
                 }
             });
 
-            // Modales Admin
             const openAdminBtn = document.getElementById('openAdminBtn');
             const adminModal = document.getElementById('admin-modal');
             const closeAdminModalBtn = document.getElementById('closeAdminModalBtn');
@@ -1286,9 +1285,10 @@
             closeAdminModalBtn.addEventListener('click', () => adminModal.style.display = 'none');
             closeAdminDashboardBtn.addEventListener('click', () => adminDashboardModal.style.display = 'none');
 
+            // CONTRASEÑA NUEVA: civix2026*
             submitAdminLoginBtn.addEventListener('click', () => {
                 const pass = document.getElementById('admin-password').value;
-                if (pass === 'admin123') {
+                if (pass === 'civix2026*') {
                     activeAdmin = true;
                     adminModal.style.display = 'none';
                     document.getElementById('admin-password').value = '';
@@ -1319,6 +1319,55 @@
             });
         }
 
+        // FUNCIONES DE DESCARGA POR SECCIÓN
+        window.exportSectionTxt = function(categoryKey, categoryName) {
+            const group = reports.filter(r => r.category === categoryKey);
+            if (group.length === 0) {
+                alert(`No hay reportes en la sección ${categoryName} para exportar.`);
+                return;
+            }
+
+            let textContent = `CIVIX SANTA MARTA - INFORME OFICIAL\n`;
+            textContent += `SECCIÓN: ${categoryName.toUpperCase()}\n`;
+            textContent += `Fecha: ${new Date().toLocaleDateString('es-CO')}\n`;
+            textContent += `Total casos: ${group.length}\n========================================\n\n`;
+
+            group.forEach((r, idx) => {
+                textContent += `${idx + 1}. Título: ${r.title}\n`;
+                textContent += `   Estado: ${r.status || 'Pendiente'}\n`;
+                textContent += `   Asignación: ${r.pct || 0}%\n`;
+                textContent += `   Ubicación: Lat ${r.lat}, Lng ${r.lng}\n`;
+                textContent += `   Detalle: ${r.desc}\n\n`;
+            });
+
+            const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Civix_Informe_${categoryKey.replace('/', '_')}.txt`;
+            link.click();
+        };
+
+        window.exportSectionCsv = function(categoryKey, categoryName) {
+            const group = reports.filter(r => r.category === categoryKey);
+            if (group.length === 0) {
+                alert(`No hay reportes en la sección ${categoryName} para exportar.`);
+                return;
+            }
+
+            let csvContent = "\uFEFFID,Sección,Título,Estado,Porcentaje(%),Latitud,Longitud,Fecha,Descripción\n";
+            group.forEach(r => {
+                const cleanTitle = `"${(r.title || '').replace(/"/g, '""')}"`;
+                const cleanDesc = `"${(r.desc || '').replace(/"/g, '""')}"`;
+                csvContent += `"${r.id}","${r.category}",${cleanTitle},"${r.status || 'Pendiente'}","${r.pct || 0}","${r.lat}","${r.lng}","${r.date || ''}",${cleanDesc}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Civix_Reportes_${categoryKey.replace('/', '_')}.csv`;
+            link.click();
+        };
+
         function renderAdminPanel() {
             const pctContainer = document.getElementById('admin-reports-pct-inputs');
             pctContainer.innerHTML = '';
@@ -1333,6 +1382,113 @@
                     <input type="number" class="admin-pct-input" data-id="${r.id}" value="${r.pct || 0}" min="0" max="100" style="width: 70px; padding: 6px;"> %
                 `;
                 pctContainer.appendChild(row);
+            });
+
+            const reportsGroupedContainer = document.getElementById('admin-reports-grouped-list');
+            reportsGroupedContainer.innerHTML = '';
+
+            const categories = [
+                { id: "Hueco/Vía", label: "🛣️ Huecos y Vías" },
+                { id: "Alumbrado", label: "💡 Alumbrado Público" },
+                { id: "Alcantarillado", label: "🚰 Alcantarillado y Agua" },
+                { id: "Parque/Espacio", label: "🌳 Parques y Espacios" },
+                { id: "Basura", label: "🗑️ Aseo y Basuras" },
+                { id: "Seguridad", label: "🛡️ Seguridad / Otros" }
+            ];
+
+            categories.forEach(cat => {
+                const groupReports = reports.filter(r => r.category === cat.id);
+                const groupCard = document.createElement('div');
+                groupCard.className = 'section-group-box';
+
+                let itemsHTML = '';
+                if(groupReports.length === 0) {
+                    itemsHTML = '<p style="font-size: 11px; color: var(--text-muted);">Sin reportes en esta sección.</p>';
+                } else {
+                    groupReports.forEach(r => {
+                        itemsHTML += `
+                            <div class="bank-card" style="margin-top: 6px; margin-bottom: 0;">
+                                <div style="flex: 1;">
+                                    <strong style="font-size: 11px;">${r.title}</strong>
+                                    <div style="font-size: 10px; color: var(--text-muted);">Estado: ${r.status || 'Pendiente'} | ${r.pct || 0}%</div>
+                                </div>
+                                <div style="display: flex; gap: 4px;">
+                                    <select class="status-select" data-id="${r.id}" style="padding: 4px; font-size: 10px;">
+                                        <option value="Pendiente" ${r.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                                        <option value="Proceso" ${r.status === 'Proceso' ? 'selected' : ''}>En Proceso</option>
+                                        <option value="Terminado" ${r.status === 'Terminado' ? 'selected' : ''}>Terminado</option>
+                                    </select>
+                                    <button class="btn-danger delete-report-btn" data-id="${r.id}" style="padding: 4px 8px;"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                groupCard.innerHTML = `
+                    <div class="section-group-header">
+                        <span>${cat.label}</span>
+                        <span style="background: #1e293b; padding: 2px 8px; border-radius: 12px; font-size: 10px;">${groupReports.length}</span>
+                    </div>
+                    <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                        <button type="button" onclick="exportSectionTxt('${cat.id}', '${cat.label}')" class="copy-btn" style="background: var(--primary); flex: 1; padding: 6px; font-size: 10px;">
+                            <i class="fa-solid fa-file-lines"></i> TXT
+                        </button>
+                        <button type="button" onclick="exportSectionCsv('${cat.id}', '${cat.label}')" class="copy-btn" style="background: var(--accent); flex: 1; padding: 6px; font-size: 10px;">
+                            <i class="fa-solid fa-file-excel"></i> Excel
+                        </button>
+                    </div>
+                    ${itemsHTML}
+                `;
+                reportsGroupedContainer.appendChild(groupCard);
+            });
+
+            // Eventos para cambiar estado y borrar reportes
+            document.querySelectorAll('.status-select').forEach(select => {
+                select.addEventListener('change', async (e) => {
+                    const docId = e.target.getAttribute('data-id');
+                    await updateDoc(doc(db, "reports", docId), { status: e.target.value });
+                });
+            });
+
+            document.querySelectorAll('.delete-report-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    if (confirm('¿Deseas eliminar este reporte?')) {
+                        const docId = e.currentTarget.getAttribute('data-id');
+                        await deleteDoc(doc(db, "reports", docId));
+                    }
+                });
+            });
+
+            // Listado y borrado de donaciones en el panel admin
+            const donationsList = document.getElementById('admin-donations-list');
+            donationsList.innerHTML = '';
+
+            if (donations.length === 0) {
+                donationsList.innerHTML = '<p style="font-size: 11px; color: var(--text-muted);">No hay aportes registrados.</p>';
+            }
+
+            donations.forEach(d => {
+                const formatted = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(d.amount);
+                const item = document.createElement('div');
+                item.className = 'bank-card';
+                item.innerHTML = `
+                    <div>
+                        <strong style="font-size: 11px;">${d.donor}</strong> - ${formatted}
+                        <div style="font-size: 9px; color: var(--accent);">Ref: ${d.refCode || 'N/A'}</div>
+                    </div>
+                    <button class="btn-danger delete-donation-btn" data-id="${d.id}" style="padding: 4px 8px;"><i class="fa-solid fa-trash"></i></button>
+                `;
+                donationsList.appendChild(item);
+            });
+
+            document.querySelectorAll('.delete-donation-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    if (confirm('¿Deseas eliminar este aporte?')) {
+                        const docId = e.currentTarget.getAttribute('data-id');
+                        await deleteDoc(doc(db, "donations", docId));
+                    }
+                });
             });
         }
     </script>
