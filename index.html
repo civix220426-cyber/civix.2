@@ -677,11 +677,11 @@
 
                     <div class="form-group">
                         <label>Fotografía del Incidente</label>
-                        <!-- CORREGIDO: Se añadió capture="environment" para invocar la cámara del celular y accept="image/*" con multiple opción -->
+                        <!-- SIN capture para que el móvil muestre el menú flotante: Cámara o Galería -->
                         <label for="report-img" class="file-upload-btn">
                             <i class="fa-solid fa-camera"></i> Tomar o Subir Foto
                         </label>
-                        <input type="file" id="report-img" accept="image/*" capture="environment">
+                        <input type="file" id="report-img" accept="image/*">
                         <div class="preview-container" id="img-preview-box">
                             <img id="img-preview" src="#" alt="Vista previa">
                         </div>
@@ -746,7 +746,6 @@
                         <label for="receipt-img" class="file-upload-btn" style="background: #0f172a; border: 1px dashed var(--accent);">
                             <i class="fa-solid fa-file-invoice-dollar" style="color: var(--accent);"></i> Subir Captura
                         </label>
-                        <!-- CORREGIDO: También se asegura de abrir la cámara/galería para el comprobante -->
                         <input type="file" id="receipt-img" accept="image/*" required>
                     </div>
 
@@ -1153,6 +1152,7 @@
             const receiptInput = document.getElementById('receipt-img');
             const ocrStatusBox = document.getElementById('ocr-status');
 
+            // IA de comprobantes restaurada a su flexibilidad original (sin bloqueos estrictos de cuentas)
             receiptInput.addEventListener('change', async (e) => {
                 if (!e.target.files || !e.target.files[0]) return;
                 const file = e.target.files[0];
@@ -1160,7 +1160,7 @@
                 ocrStatusBox.style.display = 'block';
                 ocrStatusBox.style.borderColor = '#fbbf24';
                 ocrStatusBox.style.color = '#fbbf24';
-                ocrStatusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Auditando comprobante...';
+                ocrStatusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Leyendo comprobante...';
 
                 try {
                     const result = await Tesseract.recognize(file, 'spa');
@@ -1181,7 +1181,7 @@
                     isOcrReady = true;
                     ocrStatusBox.style.borderColor = 'var(--accent)';
                     ocrStatusBox.style.color = 'var(--accent)';
-                    ocrStatusBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> Comprobante analizado con éxito.`;
+                    ocrStatusBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> Comprobante procesado con éxito (Código: ${scannedRefCode}).`;
                 } catch (err) {
                     isOcrReady = true;
                     scannedRefCode = "REF-" + Date.now().toString().slice(-6);
@@ -1243,14 +1243,6 @@
 
                 if (!isOcrReady || !scannedRefCode) {
                     alert('Adjunta la captura del comprobante.');
-                    return;
-                }
-
-                const cleanOcrText = rawOcrText.replace(/[\s\-_]/g, '').replace(/o/g, '0').replace(/l|i/g, '1');
-                const hasOfficialAccount = CLEAN_OFFICIAL_ACCOUNTS.some(acc => cleanOcrText.includes(acc));
-
-                if (rawOcrText !== "" && !hasOfficialAccount) {
-                    alert('❌ En el comprobante no se detectó el envío a las cuentas oficiales (304 446 0524 o 781-712996-07).');
                     return;
                 }
 
