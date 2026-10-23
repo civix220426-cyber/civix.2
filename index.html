@@ -787,7 +787,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <!-- FIREBASE v10 Y ESCÁNER DE VERIFICACIÓN CON IA OPTIMIZADA -->
+    <!-- FIREBASE v10 Y ESCÁNER DE VERIFICACIÓN CON IA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -1210,7 +1210,6 @@
                     // 2. Extraer Código de Referencia Único evitando tomar números de cuenta
                     let candidateRef = null;
 
-                    // Patrón A: Palabras clave explícitas ("Ref: M12345", "Transacción: 987654", "Comprobante: 123456")
                     const labelMatch = result.data.text.match(/(?:ref(?:erencia)?|transacci[oó]n|comprobante|aprobaci[oó]n|nro|n[uú]mero)[\s:#\.-]*([a-z0-9]{4,15})/i);
                     if (labelMatch) {
                         const val = labelMatch[1].toUpperCase();
@@ -1220,13 +1219,11 @@
                         }
                     }
 
-                    // Patrón B: Formato clásico de Nequi (Ej: M1234567)
                     if (!candidateRef) {
                         const nequiMatch = result.data.text.match(/\bM\d{6,10}\b/i);
                         if (nequiMatch) candidateRef = nequiMatch[0].toUpperCase();
                     }
 
-                    // Patrón C: Códigos alfanuméricos únicos excluyendo cuentas de origen/destino
                     if (!candidateRef) {
                         const allCodes = result.data.text.match(/\b[A-Z0-9]{6,12}\b/gi) || [];
                         for (let code of allCodes) {
@@ -1328,7 +1325,7 @@
                 }
             });
 
-            // FORMULARIO DE DONACIÓN CON AUDITORÍA ROBUSTA ANTI-DUPLICADOS REALES
+            // FORMULARIO DE DONACIÓN CON AUDITORÍA
             const donationForm = document.getElementById('donation-form');
             donationForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -1345,7 +1342,6 @@
                     return;
                 }
 
-                // 1. COMPROBACIÓN DE NÚMERO DE CUENTA OFICIAL
                 const cleanOcrText = rawOcrText.replace(/[\s\-_]/g, '').replace(/o/g, '0').replace(/l|i/g, '1');
                 const hasOfficialAccount = CLEAN_OFFICIAL_ACCOUNTS.some(acc => cleanOcrText.includes(acc));
 
@@ -1354,7 +1350,6 @@
                     return;
                 }
 
-                // 2. REVISIÓN ANTI-DUPLICADOS (Verifica contra Firebase)
                 if (scannedRefCode) {
                     const isDuplicateRef = donations.some(d => d.refCode && d.refCode.toUpperCase() === scannedRefCode.toUpperCase());
                     if (isDuplicateRef) {
@@ -1363,7 +1358,6 @@
                     }
                 }
 
-                // 3. VALIDACIÓN DE MONTO EXACTO
                 if (scannedAmounts.length > 0) {
                     const amountMatches = scannedAmounts.some(amt => Math.abs(amt - declaredAmount) <= 500);
                     if (!amountMatches) {
@@ -1372,7 +1366,6 @@
                     }
                 }
 
-                // 4. VALIDACIÓN DE FECHA RECIENTE
                 if (rawOcrText !== "" && scannedDateObj) {
                     const today = new Date();
                     const diffTime = today.getTime() - scannedDateObj.getTime();
@@ -1384,7 +1377,6 @@
                     }
                 }
 
-                // Generar código único seguro si la imagen no traía ref explícita
                 const finalRefCode = scannedRefCode || ("REF-" + Math.floor(100000 + Math.random() * 900000));
 
                 try {
@@ -1455,6 +1447,7 @@
             });
         }
 
+        // FUNCIONES DE EXPORTACIÓN
         window.exportSectionTxt = function(categoryKey, categoryName) {
             const group = reports.filter(r => r.category === categoryKey);
             if (group.length === 0) {
@@ -1501,6 +1494,86 @@
             link.href = URL.createObjectURL(blob);
             link.download = `Civix_Reportes_${categoryKey.replace('/', '_')}.csv`;
             link.click();
+        };
+
+        // EXPORTACIÓN A PDF VISUAL ORGANIZADO CON IMÁGENES EMBEBIDAS
+        window.exportSectionPdf = function(categoryKey, categoryName) {
+            const group = reports.filter(r => r.category === categoryKey);
+            if (group.length === 0) {
+                alert(`No hay reportes en la sección ${categoryName} para exportar.`);
+                return;
+            }
+
+            const printWin = window.open('', '_blank');
+            let htmlContent = `
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Informe Civix - ${categoryName}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 25px; color: #0f172a; background: #ffffff; }
+                        .header { text-align: center; border-bottom: 3px solid #4f46e5; padding-bottom: 12px; margin-bottom: 25px; }
+                        .header h1 { margin: 0; color: #4f46e5; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
+                        .header p { margin: 6px 0 0 0; color: #64748b; font-size: 13px; }
+                        .report-card { border: 1px solid #cbd5e1; border-radius: 10px; padding: 18px; margin-bottom: 25px; page-break-inside: avoid; background: #f8fafc; }
+                        .report-title { font-size: 16px; font-weight: bold; color: #0f172a; }
+                        .meta-info { font-size: 11px; color: #475569; margin: 8px 0 12px 0; display: flex; gap: 15px; flex-wrap: wrap; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px; }
+                        .badge { padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 10px; text-transform: uppercase; }
+                        .status-pendiente { background: #fef3c7; color: #d97706; border: 1px solid #f59e0b; }
+                        .status-proceso { background: #dbeafe; color: #1d4ed8; border: 1px solid #3b82f6; }
+                        .status-terminado { background: #d1fae5; color: #047857; border: 1px solid #10b981; }
+                        .desc { font-size: 13px; color: #334155; margin-bottom: 12px; line-height: 1.5; white-space: pre-line; }
+                        .img-container { text-align: center; margin-top: 12px; background: #0f172a; padding: 10px; border-radius: 8px; }
+                        .img-container img { max-width: 100%; max-height: 320px; border-radius: 6px; object-fit: contain; }
+                        @media print {
+                            .no-print { display: none !important; }
+                            body { padding: 0; }
+                            .report-card { border: 1px solid #94a3b8; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="no-print" style="margin-bottom: 20px; text-align: right;">
+                        <button onclick="window.print()" style="background: #10b981; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer;">
+                            🖨️ Imprimir / Guardar como PDF
+                        </button>
+                    </div>
+                    <div class="header">
+                        <h1>Civix Santa Marta - Informe Oficial</h1>
+                        <p>Sección: <strong>${categoryName}</strong> | Fecha de emisión: ${new Date().toLocaleDateString('es-CO')}</p>
+                    </div>
+            `;
+
+            group.forEach((r, idx) => {
+                let statusClass = 'status-pendiente';
+                if (r.status === 'Proceso') statusClass = 'status-proceso';
+                if (r.status === 'Terminado') statusClass = 'status-terminado';
+
+                htmlContent += `
+                    <div class="report-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="report-title">${idx + 1}. ${r.title}</div>
+                            <span class="badge ${statusClass}">${r.status || 'Pendiente'}</span>
+                        </div>
+                        <div class="meta-info">
+                            <span>📍 Lat: ${r.lat ? r.lat.toFixed(4) : 'N/A'}, Lng: ${r.lng ? r.lng.toFixed(4) : 'N/A'}</span>
+                            <span>📅 Fecha: ${r.date || 'N/A'}</span>
+                            <span>📊 Fondo asignado: ${r.pct || 0}%</span>
+                        </div>
+                        <div class="desc">${r.desc}</div>
+                        ${r.img ? `
+                            <div class="img-container">
+                                <img src="${r.img}" alt="Fotografía del incidente">
+                            </div>
+                        ` : '<div style="font-size: 11px; color: #94a3b8; font-style: italic;">Sin fotografía adjunta.</div>'}
+                    </div>
+                `;
+            });
+
+            htmlContent += `</body></html>`;
+            printWin.document.write(htmlContent);
+            printWin.document.close();
         };
 
         function renderAdminPanel() {
@@ -1569,8 +1642,11 @@
                         <button type="button" onclick="exportSectionTxt('${cat.id}', '${cat.label}')" class="copy-btn" style="background: var(--primary); flex: 1; padding: 6px; font-size: 10px;">
                             <i class="fa-solid fa-file-lines"></i> TXT
                         </button>
-                        <button type="button" onclick="exportSectionCsv('${cat.id}', '${cat.label}')" class="copy-btn" style="background: var(--accent); flex: 1; padding: 6px; font-size: 10px;">
+                        <button type="button" onclick="exportSectionCsv('${cat.id}', '${cat.label}')" class="copy-btn" style="background: #0284c7; flex: 1; padding: 6px; font-size: 10px;">
                             <i class="fa-solid fa-file-excel"></i> Excel
+                        </button>
+                        <button type="button" onclick="exportSectionPdf('${cat.id}', '${cat.label}')" class="copy-btn" style="background: var(--accent); flex: 1; padding: 6px; font-size: 10px;">
+                            <i class="fa-solid fa-file-pdf"></i> PDF / Fotos
                         </button>
                     </div>
                     ${itemsHTML}
