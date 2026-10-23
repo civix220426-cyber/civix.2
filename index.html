@@ -381,9 +381,10 @@
             color: var(--text-main);
             border-radius: 8px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             text-align: center;
             width: 100%;
+            font-weight: 600;
         }
 
         input[type="file"] { display: none; }
@@ -677,10 +678,19 @@
 
                     <div class="form-group">
                         <label>Fotografía del Incidente</label>
-                        <label for="report-img" class="file-upload-btn">
-                            <i class="fa-solid fa-camera"></i> Tomar o Subir Foto
-                        </label>
-                        <input type="file" id="report-img" accept="image/*">
+                        <!-- DOS BOTONES: CÁMARA DIRECTA O GALERÍA -->
+                        <div style="display: flex; gap: 8px;">
+                            <label for="report-img-camera" class="file-upload-btn" style="flex: 1; background: #1e293b; border: 1px solid var(--primary); color: #ffffff;">
+                                <i class="fa-solid fa-camera"></i> Tomar Foto
+                            </label>
+                            <input type="file" id="report-img-camera" accept="image/*" capture="environment">
+
+                            <label for="report-img-gallery" class="file-upload-btn" style="flex: 1; background: #1e293b; border: 1px solid var(--accent); color: #ffffff;">
+                                <i class="fa-solid fa-images"></i> Galería
+                            </label>
+                            <input type="file" id="report-img-gallery" accept="image/*">
+                        </div>
+
                         <div class="preview-container" id="img-preview-box">
                             <img id="img-preview" src="#" alt="Vista previa">
                         </div>
@@ -742,10 +752,17 @@
 
                     <div class="form-group">
                         <label>Comprobante de Pago</label>
-                        <label for="receipt-img" class="file-upload-btn" style="background: #0f172a; border: 1px dashed var(--accent);">
-                            <i class="fa-solid fa-file-invoice-dollar" style="color: var(--accent);"></i> Tomar o Subir Captura
-                        </label>
-                        <input type="file" id="receipt-img" accept="image/*" required>
+                        <div style="display: flex; gap: 8px;">
+                            <label for="receipt-img-camera" class="file-upload-btn" style="flex: 1; background: #0f172a; border: 1px dashed var(--accent);">
+                                <i class="fa-solid fa-camera" style="color: var(--accent);"></i> Tomar Foto
+                            </label>
+                            <input type="file" id="receipt-img-camera" accept="image/*" capture="environment">
+
+                            <label for="receipt-img-gallery" class="file-upload-btn" style="flex: 1; background: #0f172a; border: 1px dashed var(--accent);">
+                                <i class="fa-solid fa-images" style="color: var(--accent);"></i> Galería
+                            </label>
+                            <input type="file" id="receipt-img-gallery" accept="image/*">
+                        </div>
                     </div>
 
                     <div id="ocr-status" class="ocr-result-box"></div>
@@ -1109,15 +1126,13 @@
                 });
             });
 
-            const imgInput = document.getElementById('report-img');
             const previewBox = document.getElementById('img-preview-box');
             const preview = document.getElementById('img-preview');
             const locStatus = document.getElementById('location-status');
 
-            imgInput.addEventListener('change', async (e) => {
-                if (!e.target.files || !e.target.files[0]) return;
-                const file = e.target.files[0];
-
+            // FUNCIÓN COMÚN PARA PROCESAR IMAGEN DE REPORTES (CÁMARA Y GALERÍA)
+            const handleReportImageFile = async (file) => {
+                if (!file) return;
                 try {
                     compressedReportImg = await compressImage(file, 350, 0.5);
                     preview.src = compressedReportImg;
@@ -1146,23 +1161,31 @@
                 } catch (err) {
                     requestDeviceLocation();
                 }
+            };
+
+            document.getElementById('report-img-camera').addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) handleReportImageFile(e.target.files[0]);
             });
 
-            // IA ESTRICTA DE COMPROBANTES (Antifraude restaurada)
-            const receiptInput = document.getElementById('receipt-img');
+            document.getElementById('report-img-gallery').addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) handleReportImageFile(e.target.files[0]);
+            });
+
+            // FUNCIÓN COMÚN PARA PROCESAR COMPROBANTES DE PAGO (CÁMARA Y GALERÍA)
             const ocrStatusBox = document.getElementById('ocr-status');
 
-            receiptInput.addEventListener('change', async (e) => {
-                if (!e.target.files || !e.target.files[0]) return;
-                const file = e.target.files[0];
+            const handleReceiptImageFile = async (file) => {
+                if (!file) return;
 
                 ocrStatusBox.style.display = 'block';
                 ocrStatusBox.style.borderColor = '#fbbf24';
                 ocrStatusBox.style.color = '#fbbf24';
-                ocrStatusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Auditando comprobante con IA...';
+                ocrStatusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analizando comprobante...';
 
                 try {
-                    const result = await Tesseract.recognize(file, 'spa');
+                    const optimizedReceipt = await compressImage(file, 800, 0.7);
+
+                    const result = await Tesseract.recognize(optimizedReceipt, 'spa');
                     rawOcrText = result.data.text.toLowerCase();
 
                     const matches = result.data.text.match(/(?:\$|\b)\s*([0-9]{1,3}(?:[.,][0-9]{3})+|[0-9]{4,8})/g);
@@ -1180,14 +1203,22 @@
                     isOcrReady = true;
                     ocrStatusBox.style.borderColor = 'var(--accent)';
                     ocrStatusBox.style.color = 'var(--accent)';
-                    ocrStatusBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> Comprobante auditado. Ref: ${scannedRefCode}`;
+                    ocrStatusBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> Comprobante verificado con éxito (Ref: ${scannedRefCode})`;
                 } catch (err) {
                     isOcrReady = true;
                     scannedRefCode = "REF-" + Date.now().toString().slice(-6);
                     ocrStatusBox.style.borderColor = 'var(--accent)';
                     ocrStatusBox.style.color = 'var(--accent)';
-                    ocrStatusBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> Imagen cargada. Código: <code>${scannedRefCode}</code>`;
+                    ocrStatusBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> Captura cargada correctamente. Ref: ${scannedRefCode}`;
                 }
+            };
+
+            document.getElementById('receipt-img-camera').addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) handleReceiptImageFile(e.target.files[0]);
+            });
+
+            document.getElementById('receipt-img-gallery').addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) handleReceiptImageFile(e.target.files[0]);
             });
 
             const reportForm = document.getElementById('report-form');
@@ -1245,7 +1276,7 @@
                     return;
                 }
 
-                // VALIDACIÓN ANTIFRAUDE ESTRICTA
+                // VALIDACIÓN ANTIFRAUDE ROBUSTA
                 const cleanOcrText = rawOcrText.replace(/[\s\-_]/g, '').replace(/o/g, '0').replace(/l|i/g, '1');
                 const hasOfficialAccount = CLEAN_OFFICIAL_ACCOUNTS.some(acc => cleanOcrText.includes(acc));
 
