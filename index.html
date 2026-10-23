@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Civix Santa Marta - Plataforma de participación ciudadana para el reporte y mapeo de infraestructura urbana.">
     <title>Civix - Santa Marta | Infraestructura y Comunidad</title>
     
@@ -53,6 +53,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -122,7 +123,7 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            padding: 20px;
+            padding: 15px;
         }
 
         .modal-card {
@@ -131,7 +132,7 @@
             width: 100%;
             max-width: 500px;
             border-radius: 12px;
-            padding: 24px;
+            padding: 20px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
             color: var(--text-main);
         }
@@ -141,9 +142,9 @@
             border: 1px solid var(--border-color);
             width: 100%;
             max-width: 850px;
-            max-height: 85vh;
+            max-height: 90vh;
             border-radius: 12px;
-            padding: 24px;
+            padding: 20px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
             color: var(--text-main);
             display: flex;
@@ -152,7 +153,7 @@
 
         .admin-scroll-area {
             overflow-y: auto;
-            max-height: 60vh;
+            max-height: 65vh;
             padding-right: 5px;
             display: flex;
             flex-direction: column;
@@ -160,86 +161,79 @@
             margin-top: 15px;
         }
 
-        /* CABECERA */
+        /* CABECERA Y DISEÑO RESPONSIVO MÓVIL */
         header.main-header {
             background: linear-gradient(135deg, #1e293b, #0f172a);
             border-bottom: 1px solid var(--border-color);
-            padding: 20px 40px;
+            padding: 16px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 15px;
         }
 
         .brand-title h1 {
-            font-size: 26px;
+            font-size: 22px;
             color: var(--primary);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .brand-title p {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-muted);
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
+            gap: 10px;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        @media (min-width: 768px) {
+            .header-actions { width: auto; justify-content: flex-end; }
+            .brand-title h1 { font-size: 26px; }
         }
 
         .stat-card {
             background: #0f172a;
             border: 1px solid var(--border-color);
-            padding: 10px 18px;
+            padding: 8px 14px;
             border-radius: 10px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            gap: 10px;
+            flex: 1;
         }
 
-        .stat-card i { font-size: 24px; }
+        .stat-card i { font-size: 20px; }
         .stat-info { display: flex; flex-direction: column; }
-        .stat-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-        .stat-value { font-size: 18px; font-weight: 700; color: var(--text-main); }
+        .stat-label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+        .stat-value { font-size: 15px; font-weight: 700; color: var(--text-main); }
 
         .btn-new-report {
-            padding: 10px 16px;
+            padding: 10px 14px;
             border-radius: 8px;
             color: var(--text-main);
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-new-report:hover {
-            background-color: var(--card-bg) !important;
-            border-color: var(--primary) !important;
-            color: #ffffff;
+            white-space: nowrap;
         }
 
         /* FILTROS */
         .category-tabs {
             display: flex;
             gap: 8px;
-            flex-wrap: wrap;
+            overflow-x: auto;
+            padding-bottom: 8px;
             margin-bottom: 15px;
+            -webkit-overflow-scrolling: touch;
         }
 
         .tab-btn {
@@ -250,14 +244,10 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
+            white-space: nowrap;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
-        .tab-btn:hover { border-color: var(--primary); color: var(--text-main); }
         .tab-btn.active { background: var(--primary); border-color: var(--primary); color: #ffffff; }
 
         .fund-highlight-box {
@@ -269,53 +259,33 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.1);
         }
 
         .fund-highlight-left { display: flex; align-items: center; gap: 10px; }
-        .fund-highlight-left i { font-size: 26px; color: var(--accent); }
-        .fund-highlight-left span {
-            font-size: 12px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-weight: 600;
-            display: block;
-        }
-        .fund-highlight-left strong { font-size: 13px; color: var(--text-main); }
-        .fund-highlight-value { font-size: 22px; font-weight: 800; color: var(--accent); }
+        .fund-highlight-left i { font-size: 24px; color: var(--accent); }
+        .fund-highlight-left span { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; }
+        .fund-highlight-left strong { font-size: 12px; color: var(--text-main); }
+        .fund-highlight-value { font-size: 20px; font-weight: 800; color: var(--accent); }
 
         .report-card-item {
             background: #0f172a;
             border: 1px solid var(--border-color);
             border-radius: 10px;
             padding: 14px;
-            margin-bottom: 10px;
             display: flex;
             flex-direction: column;
             gap: 8px;
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .report-card-item:hover {
-            transform: translateY(-2px);
-            border-color: #475569;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
         }
 
         .report-card-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .report-card-title { font-size: 14px; font-weight: 700; color: var(--text-main); margin: 0; }
+        .report-card-title { font-size: 14px; font-weight: 700; color: var(--text-main); }
 
         .status-badge {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
-            padding: 4px 10px;
+            padding: 4px 8px;
             border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
         }
 
         .status-badge.status-pending { background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
@@ -331,7 +301,6 @@
             color: #64748b;
             border-top: 1px dashed var(--border-color);
             padding-top: 8px;
-            margin-top: 2px;
         }
 
         .report-category-tag { background: #1e293b; color: #cbd5e1; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
@@ -339,90 +308,101 @@
         .app-container {
             max-width: 1200px;
             width: 100%;
-            margin: 25px auto;
-            padding: 0 20px;
+            margin: 15px auto;
+            padding: 0 15px;
             display: flex;
             flex-direction: column;
-            gap: 25px;
+            gap: 20px;
         }
 
         .map-section-card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            padding: 15px;
         }
 
-        .section-title { font-size: 16px; margin-bottom: 12px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+        .section-title { font-size: 15px; margin-bottom: 12px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
 
-        #map { width: 100%; height: 480px; border-radius: 8px; border: 1px solid var(--border-color); z-index: 1; }
+        #map { width: 100%; height: 380px; border-radius: 8px; border: 1px solid var(--border-color); z-index: 1; }
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
         }
 
         .panel-card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            padding: 16px;
         }
 
         .form-group { margin-bottom: 12px; }
-
         label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
 
         input[type="text"], input[type="number"], input[type="password"], textarea, select {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background: #0f172a;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             color: var(--text-main);
-            font-size: 13px;
+            font-size: 14px;
         }
 
-        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); }
-        textarea { resize: vertical; height: 70px; }
+        textarea { resize: vertical; height: 80px; }
+
+        .btn-gps-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #10b981;
+            color: #ffffff;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
 
         .file-upload-btn {
-            display: inline-block;
-            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
             background: #334155;
             color: var(--text-main);
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
             text-align: center;
             width: 100%;
-            transition: background 0.2s;
         }
 
-        .file-upload-btn:hover { background: #475569; }
         input[type="file"] { display: none; }
 
         .preview-container { margin-top: 8px; display: none; text-align: center; }
-        .preview-container img { max-width: 100%; max-height: 120px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .preview-container img { max-width: 100%; max-height: 140px; border-radius: 6px; border: 1px solid var(--border-color); }
 
         .btn-primary {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
+            padding: 14px;
+            border-radius: 8px;
             cursor: pointer;
             width: 100%;
-            font-weight: 600;
-            font-size: 13px;
-            transition: background-color 0.2s;
+            font-weight: bold;
+            font-size: 14px;
             margin-top: 6px;
         }
-
-        .btn-primary:hover { background-color: var(--primary-hover); }
 
         .btn-danger {
             background-color: var(--danger);
@@ -430,22 +410,18 @@
             border: none;
             padding: 6px 12px;
             border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
             font-size: 12px;
-            transition: background-color 0.2s;
         }
-
-        .btn-danger:hover { background-color: var(--danger-hover); }
 
         .location-info {
             font-size: 12px;
             color: var(--accent);
             margin-bottom: 10px;
             background: rgba(16, 185, 129, 0.1);
-            padding: 8px;
-            border-radius: 6px;
+            padding: 10px;
+            border-radius: 8px;
             border: 1px dashed var(--accent);
+            line-height: 1.4;
         }
 
         .list-box { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
@@ -455,7 +431,6 @@
             border: 1px solid var(--border-color);
             padding: 10px;
             border-radius: 6px;
-            margin-bottom: 8px;
             font-size: 13px;
             display: flex;
             justify-content: space-between;
@@ -467,13 +442,11 @@
             background: var(--border-color);
             border: none;
             color: white;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 11px;
         }
-
-        .copy-btn:hover { background: var(--primary); }
 
         .section-group-box {
             background: #0f172a;
@@ -493,14 +466,6 @@
             align-items: center;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 6px;
-        }
-
-        .admin-export-box {
-            background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(15, 23, 42, 0.9));
-            border: 1px solid var(--primary);
-            border-radius: 8px;
-            padding: 14px;
-            margin-bottom: 15px;
         }
 
         .ocr-result-box {
@@ -528,23 +493,23 @@
         
         <div class="intro-overlay"></div>
 
-        <button id="skip-intro-btn" style="position: absolute; bottom: 40px; right: 40px; z-index: 10; background: rgba(30, 41, 59, 0.75); border: 1px solid rgba(255, 255, 255, 0.2); color: #cbd5e1; padding: 10px 24px; border-radius: 30px; cursor: pointer; font-size: 13px; font-weight: 600; letter-spacing: 1px; backdrop-filter: blur(10px); transition: all 0.2s;">
+        <button id="skip-intro-btn" style="position: absolute; bottom: 30px; right: 20px; z-index: 10; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: #cbd5e1; padding: 10px 20px; border-radius: 30px; cursor: pointer; font-size: 12px; font-weight: 600; backdrop-filter: blur(10px);">
             Saltar Intro ⏭
         </button>
 
         <div style="position: relative; z-index: 3; text-align: center; width: 100%; max-width: 900px; padding: 20px; display: flex; justify-content: center; align-items: center; height: 200px;">
-            <div id="intro-step-1" style="position: absolute; width: 100%; opacity: 1; transition: opacity 1s ease, transform 1s ease;">
-                <h1 style="font-size: clamp(50px, 10vw, 85px); font-weight: 900; letter-spacing: 8px; color: #ffffff; text-transform: uppercase; margin: 0; text-shadow: 0 15px 35px rgba(0,0,0,0.8);">
+            <div id="intro-step-1" style="position: absolute; width: 100%; opacity: 1; transition: opacity 1s ease;">
+                <h1 style="font-size: clamp(40px, 8vw, 75px); font-weight: 900; letter-spacing: 6px; color: #ffffff; text-transform: uppercase; margin: 0;">
                     <span style="color: #4f46e5;">Ci</span>vix
                 </h1>
-                <p style="color: #cbd5e1; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; margin-top: 10px; font-weight: 600;">Santa Marta</p>
+                <p style="color: #cbd5e1; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; margin-top: 8px; font-weight: 600;">Santa Marta</p>
             </div>
             
-            <div id="intro-step-2" style="position: absolute; width: 100%; opacity: 0; transition: opacity 1s ease, transform 1s ease; pointer-events: none;">
-                <h2 style="font-size: clamp(20px, 4vw, 32px); font-weight: 400; letter-spacing: 6px; color: #f8fafc; text-transform: uppercase; margin: 0; text-shadow: 0 10px 25px rgba(0,0,0,0.8);">
+            <div id="intro-step-2" style="position: absolute; width: 100%; opacity: 0; transition: opacity 1s ease; pointer-events: none;">
+                <h2 style="font-size: clamp(18px, 4vw, 28px); font-weight: 400; letter-spacing: 4px; color: #f8fafc; text-transform: uppercase; margin: 0;">
                     Un verdadero cambio
                 </h2>
-                <div style="width: 60px; height: 3px; background: #10b981; margin: 15px auto 0 auto; border-radius: 2px;"></div>
+                <div style="width: 50px; height: 3px; background: #10b981; margin: 12px auto 0 auto; border-radius: 2px;"></div>
             </div>
         </div>
     </div>
@@ -552,91 +517,32 @@
     <!-- MODAL DE TÉRMINOS OFICIALES DE CIVIX -->
     <div id="terms-modal" class="modal-overlay" role="dialog" aria-modal="true" style="display: flex;">
         <div class="modal-card" style="max-width: 680px;">
-            <div style="text-align: center; margin-bottom: 14px;">
-                <span style="background: #065f46; color: #34d399; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold;">CIVIX SANTA MARTA</span>
-                <h2 style="margin: 8px 0 4px 0; font-size: 18px; color: #ffffff;">TÉRMINOS Y CONDICIONES DE CIVIX</h2>
-                <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Última actualización: septiembre de 2026</p>
+            <div style="text-align: center; margin-bottom: 12px;">
+                <span style="background: #065f46; color: #34d399; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold;">CIVIX SANTA MARTA</span>
+                <h2 style="margin: 6px 0 2px 0; font-size: 16px; color: #ffffff;">TÉRMINOS Y CONDICIONES DE CIVIX</h2>
+                <p style="font-size: 10px; color: var(--text-muted); margin: 0;">Última actualización: septiembre de 2026</p>
             </div>
 
-            <div style="background: #0f172a; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; height: 300px; overflow-y: auto; font-size: 12px; color: #cbd5e1; margin-bottom: 16px; line-height: 1.6;">
-                <p style="margin-bottom: 12px;">Bienvenido a Civix – Santa Marta, una plataforma creada para facilitar la participación ciudadana y contribuir a la identificación de problemas que afectan a la comunidad y al entorno urbano.</p>
-                <p style="margin-bottom: 12px; font-weight: bold; color: var(--accent);">Al utilizar Civix, aceptas estos Términos y Condiciones.</p>
+            <div style="background: #0f172a; border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; height: 260px; overflow-y: auto; font-size: 12px; color: #cbd5e1; margin-bottom: 14px; line-height: 1.5;">
+                <p style="margin-bottom: 10px;">Bienvenido a Civix – Santa Marta, una plataforma creada para facilitar la participación ciudadana y contribuir a la identificación de problemas que afectan a la comunidad y al entorno urbano.</p>
+                <p style="margin-bottom: 10px; font-weight: bold; color: var(--accent);">Al utilizar Civix, aceptas estos Términos y Condiciones.</p>
 
-                <h4 style="color: var(--primary); margin: 12px 0 6px 0;">1. ¿Qué es Civix?</h4>
-                <p style="margin-bottom: 10px;">Civix es una plataforma de participación ciudadana que permite a los usuarios informar sobre problemas presentes en la ciudad, como huecos, acumulación de basura, problemas de alumbrado, deterioro de espacios públicos, problemas relacionados con el agua, situaciones de seguridad y otras situaciones de interés comunitario. Los reportes pueden incluir descripciones, fotografías y ubicación.</p>
+                <h4 style="color: var(--primary); margin: 10px 0 4px 0;">1. ¿Qué es Civix?</h4>
+                <p style="margin-bottom: 8px;">Civix permite a los usuarios informar sobre problemas urbanos como huecos, basuras, alumbrado, espacios públicos y seguridad con fotografías y ubicación.</p>
 
-                <h4 style="color: var(--primary); margin: 12px 0 6px 0;">2. Reportes ciudadanos</h4>
-                <p style="margin-bottom: 10px;">Los usuarios pueden crear reportes relacionados con problemas de la ciudad. El usuario se compromete a proporcionar información que, según su conocimiento, sea verdadera y a no utilizar Civix deliberadamente para publicar información falsa o engañosa. Civix podrá revisar, ocultar o eliminar reportes que incumplan estos términos.</p>
+                <h4 style="color: var(--primary); margin: 10px 0 4px 0;">2. Reportes ciudadanos</h4>
+                <p style="margin-bottom: 8px;">El usuario se compromete a proporcionar información real y verídica sin fines difamatorios.</p>
 
-                <h4 style="color: var(--primary); margin: 12px 0 6px 0;">3. Uso responsable</h4>
-                <p style="margin-bottom: 6px;">Está prohibido utilizar Civix para:</p>
-                <ul style="margin-left: 20px; margin-bottom: 10px;">
-                    <li>Publicar información deliberadamente falsa o engañosa.</li>
-                    <li>Acosar, amenazar o intimidar a otras personas.</li>
-                    <li>Publicar contenido discriminatorio o ilegal.</li>
-                    <li>Suplantar la identidad de otra persona.</li>
-                    <li>Publicar datos personales de terceros sin autorización.</li>
-                    <li>Utilizar la plataforma para actividades ilegales.</li>
-                    <li>Manipular o intentar afectar el funcionamiento de Civix.</li>
-                    <li>Crear reportes masivos con el objetivo de perjudicar a una persona, entidad o comunidad.</li>
-                </ul>
-
-                <h4 style="color: var(--primary); margin: 12px 0 6px 0;">4. Fotografías y contenido</h4>
-                <p style="margin-bottom: 10px;">El usuario es responsable del contenido que publica. Al subir fotografías, debe procurar no exponer innecesariamente información privada de otras personas, como documentos de identidad, números telefónicos u otros datos personales. Civix podrá retirar contenido que incumpla estos términos.</p>
-
-                <h4 style="color: var(--primary); margin: 12px 0 6px 0;">5. Ubicación</h4>
-                <p style="margin-bottom: 10px;">Al utilizar funciones relacionadas con la ubicación, el usuario puede permitir que Civix utilice dicha información para identificar el lugar donde se presenta un problema. El tratamiento de esta información estará sujeto a la Política de Privacidad de Civix.</p>
-
-                <h4 style="color: var(--primary); margin: 12px 0 6px 0;">6. Donaciones</h4>
-                <p style="margin-bottom: 8px;">Civix puede permitir que los usuarios realicen donaciones destinadas a apoyar la atención o solución de problemas publicados en la plataforma.</p>
-                <p style="margin-bottom: 6px; font-weight: bold; color: var(--accent);">6.1 Distribución de las donaciones</p>
-                <p style="margin-bottom: 8px;">Civix podrá retener un porcentaje previamente informado de cada donación como comisión por el uso de la plataforma. El porcentaje correspondiente a Civix será mostrado de manera clara antes de que el usuario confirme la donación. El dinero restante será destinado al propósito específico indicado para la donación, sujeto a las condiciones, costos de procesamiento y mecanismos utilizados para gestionar el aporte.</p>
-                <p style="margin-bottom: 8px; background: rgba(79, 70, 229, 0.15); padding: 8px; border-left: 3px solid var(--primary);"><em>Ejemplo: si una donación es de $100.000 COP y la comisión de Civix establecida para esa operación es del 10%, $10.000 COP corresponderían a Civix y $90.000 COP quedarían destinados al propósito indicado.</em></p>
-                <p style="margin-bottom: 10px;">La comisión recibida por Civix podrá utilizarse para cubrir gastos relacionados con el funcionamiento, mantenimiento, seguridad, desarrollo y mejora de la plataforma.</p>
-                <p style="margin-bottom: 6px; font-weight: bold; color: var(--accent);">6.2 Transparencia</p>
-                <p style="margin-bottom: 6px;">Civix se compromete a informar al usuario, antes de realizar una donación:</p>
-                <ul style="margin-left: 20px; margin-bottom: 8px;">
-                    <li>El valor de la donación.</li>
-                    <li>El porcentaje o valor correspondiente a Civix.</li>
-                    <li>El valor restante destinado al propósito de la donación.</li>
-                    <li>Cualquier costo adicional que corresponda al proceso de pago, cuando sea aplicable.</li>
-                </ul>
-                <p style="margin-bottom: 10px;">Civix no presentará como destinado íntegramente al proyecto un valor del cual se haya descontado previamente una comisión informada.</p>
-                <p style="margin-bottom: 6px; font-weight: bold; color: var(--accent);">6.3 Resultado de las donaciones</p>
-                <p style="margin-bottom: 10px;">Realizar una donación no garantiza que el problema reportado sea solucionado, ni que se alcance un determinado resultado. La utilización de los recursos dependerá del propósito establecido para cada campaña, proyecto o iniciativa y de las condiciones aplicables.</p>
-
-                <h4 style="color: var(--primary); margin: 12px 0 6px 0;">7. Sostenibilidad de Civix</h4>
-                <p style="margin-bottom: 6px;">Civix podrá obtener ingresos mediante diferentes mecanismos, incluyendo:</p>
-                <ul style="margin-left: 20px; margin-bottom: 8px;">
-                    <li>Comisiones transparentes sobre determinadas donaciones.</li>
-                    <li>Alianzas y patrocinios.</li>
-                    <li>Servicios para organizaciones o empresas.</li>
-                    <li>Otras actividades relacionadas con el funcionamiento y desarrollo de la plataforma.</li>
-                </ul>
-                <p style="margin-bottom: 10px;">Estos mecanismos tienen como finalidad contribuir a la sostenibilidad, mantenimiento y crecimiento de Civix.</p>
-
-                <h4 style="color: var(--primary); margin: 12px 0 6px 0;">8. Disponibilidad del servicio</h4>
-                <p style="margin-bottom: 10px;">Civix busca mantener la plataforma disponible y funcionando correctamente, pero no garantiza que el servicio esté disponible permanentemente o sin interrupciones. Pueden presentarse interrupciones por mantenimiento, problemas técnicos, fallas de terceros, problemas de conexión u otras circunstancias.</p>
-
-                <h4 style="color: var(--primary); margin: 12px 0 6px 0;">9. Propiedad intelectual</h4>
-                <p style="margin-bottom: 10px;">Los elementos propios de Civix, incluyendo su nombre, logotipo, diseño, código, textos y elementos gráficos, pertenecen a sus respectivos titulares y no podrán ser utilizados, copiados o distribuidos sin autorización. El contenido aportado por los usuarios seguirá perteneciendo a sus respectivos autores, sin perjuicio de las autorizaciones necesarias para que Civix pueda mostrarlo dentro de la plataforma.</p>
-
-                <h4 style="color: var(--primary); margin: 12px 0 6px 0;">10. Privacidad</h4>
-                <p style="margin-bottom: 10px;">El tratamiento de los datos personales se realizará de acuerdo con la Política de Privacidad de Civix y la legislación colombiana aplicable.</p>
-
-                <h4 style="color: var(--primary); margin: 12px 0 6px 0;">11. Cambios en estos términos</h4>
-                <p style="margin-bottom: 10px;">Civix podrá actualizar estos Términos y Condiciones cuando sea necesario debido a cambios en la plataforma, nuevas funciones o requisitos legales. Cuando existan cambios importantes, se procurará informar a los usuarios mediante los canales disponibles.</p>
-
-                <h4 style="color: var(--primary); margin: 12px 0 6px 0;">12. Contacto</h4>
-                <p style="margin-bottom: 10px;">Para preguntas, sugerencias, reclamaciones o asuntos relacionados con la plataforma, los usuarios podrán utilizar los canales oficiales de contacto disponibles en Civix.</p>
+                <h4 style="color: var(--primary); margin: 10px 0 4px 0;">3. Donaciones y Sostenibilidad</h4>
+                <p style="margin-bottom: 8px;">Las donaciones voluntarias ayudan a financiar las soluciones comunitarias y el mantenimiento de la plataforma Civix.</p>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; cursor: pointer;">
-                <input type="checkbox" id="accept-terms" style="width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer;">
-                <label for="accept-terms" style="font-size: 13px; color: #e2e8f0; cursor: pointer; margin-bottom: 0;">He leído y acepto los Términos y Condiciones de Civix.</label>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <input type="checkbox" id="accept-terms" style="width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;">
+                <label for="accept-terms" style="font-size: 12px; color: #e2e8f0; margin-bottom: 0;">Acepto los Términos y Condiciones de Civix.</label>
             </div>
 
-            <button id="enter-app-btn" disabled style="width: 100%; padding: 12px; background: #334155; color: var(--text-muted); border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: not-allowed; transition: all 0.3s;">
+            <button id="enter-app-btn" disabled style="width: 100%; padding: 12px; background: #334155; color: var(--text-muted); border: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
                 Continuar a la App 🚀
             </button>
         </div>
@@ -645,9 +551,9 @@
     <!-- MODAL ADMIN LOGIN -->
     <div id="admin-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true">
         <div class="modal-card">
-            <div style="text-align: center; margin-bottom: 16px;">
-                <h2 style="font-size: 20px; color: #ffffff;"><i class="fa-solid fa-lock" style="color: var(--primary);"></i> Acceso Exclusivo de Administrador</h2>
-                <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Ingresa la contraseña para acceder al panel de administración.</p>
+            <div style="text-align: center; margin-bottom: 14px;">
+                <h2 style="font-size: 18px; color: #ffffff;"><i class="fa-solid fa-lock" style="color: var(--primary);"></i> Acceso Administrador</h2>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Ingresa la contraseña para ingresar.</p>
             </div>
 
             <div class="form-group">
@@ -655,9 +561,9 @@
                 <input type="password" id="admin-password" placeholder="Contraseña...">
             </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <div style="display: flex; gap: 10px; margin-top: 12px;">
                 <button type="button" id="closeAdminModalBtn" class="copy-btn" style="flex: 1; padding: 10px; background: #334155;">Cancelar</button>
-                <button type="button" id="submitAdminLoginBtn" class="btn-primary" style="flex: 1; margin-top: 0;">Entrar</button>
+                <button type="button" id="submitAdminLoginBtn" class="btn-primary" style="flex: 1; margin-top: 0; padding: 10px;">Entrar</button>
             </div>
         </div>
     </div>
@@ -665,27 +571,22 @@
     <!-- PANEL ADMIN -->
     <div id="admin-dashboard-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true">
         <div class="modal-card-admin">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                <h2 style="font-size: 18px; color: #ffffff;"><i class="fa-solid fa-user-shield" style="color: var(--accent);"></i> Panel de Control de Administrador</h2>
-                <button type="button" id="closeAdminDashboardBtn" class="copy-btn" style="background: var(--danger); padding: 6px 12px;">Cerrar ✕</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                <h2 style="font-size: 16px; color: #ffffff;"><i class="fa-solid fa-user-shield" style="color: var(--accent);"></i> Panel Admin</h2>
+                <button type="button" id="closeAdminDashboardBtn" class="btn-danger">Cerrar ✕</button>
             </div>
 
             <div class="admin-scroll-area">
                 <div style="background: #1e293b; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <h3 style="font-size: 14px; color: var(--text-main);">⚙️ Asignar Porcentajes a Cada Reporte (%)</h3>
-                        <span id="admin-total-pct-indicator" style="font-size: 12px; font-weight: bold; color: var(--accent);">Suma: 100%</span>
+                        <h3 style="font-size: 13px; color: var(--text-main);">⚙️ Asignar Porcentajes (%)</h3>
                     </div>
-                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">Asigna un porcentaje a cada reporte activo (Suma total = 100%).</p>
                     <div id="admin-reports-pct-inputs" style="display: flex; flex-direction: column; gap: 8px;"></div>
-                    <button type="button" id="savePctBtn" class="btn-primary" style="margin-top: 10px; background: var(--accent);">Guardar Porcentajes</button>
+                    <button type="button" id="savePctBtn" class="btn-primary" style="margin-top: 10px; background: var(--accent); padding: 10px;">Guardar Porcentajes</button>
                 </div>
 
-                <h3 style="font-size: 14px; color: var(--text-main); margin-top: 10px;">Gestión y Descarga de Reportes por Secciones</h3>
-                <div id="admin-reports-grouped-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
-
-                <h3 style="font-size: 14px; color: var(--text-main); margin-top: 15px;">Gestión de Aportes Verificados</h3>
-                <div id="admin-donations-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                <h3 style="font-size: 13px; color: var(--text-main); margin-top: 10px;">Descarga de Reportes por Sección</h3>
+                <div id="admin-reports-grouped-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
             </div>
         </div>
     </div>
@@ -694,25 +595,25 @@
     <header class="main-header">
         <div class="brand-title">
             <h1><i class="fa-solid fa-city"></i> Civix Santa Marta</h1>
-            <p>Plataforma de reporte clasificado e infraestructura comunitaria</p>
+            <p>Plataforma de reporte e infraestructura comunitaria</p>
         </div>
         <div class="header-actions">
             <div class="stat-card">
                 <i class="fa-solid fa-triangle-exclamation" style="color: #fbbf24;"></i>
                 <div class="stat-info">
-                    <span class="stat-label">Reportes Activos</span>
+                    <span class="stat-label">Reportes</span>
                     <span class="stat-value" id="stat-active-reports">0</span>
                 </div>
             </div>
             <div class="stat-card">
                 <i class="fa-solid fa-hand-holding-dollar" style="color: var(--accent);"></i>
                 <div class="stat-info">
-                    <span class="stat-label">Fondo Total</span>
-                    <span class="stat-value" id="stat-total-funds">$0 COP</span>
+                    <span class="stat-label">Fondo</span>
+                    <span class="stat-value" id="stat-total-funds">$0</span>
                 </div>
             </div>
             <button class="btn-new-report" id="openAdminBtn" style="background: #334155; border: 1px solid var(--border-color);">
-                <i class="fa-solid fa-user-shield"></i> Panel Admin
+                <i class="fa-solid fa-user-shield"></i> Admin
             </button>
         </div>
     </header>
@@ -720,17 +621,17 @@
     <!-- CONTENEDOR PRINCIPAL -->
     <main class="app-container">
         <div class="category-tabs" id="category-filter-tabs">
-            <button class="tab-btn active" data-category="ALL"><i class="fa-solid fa-layer-group"></i> Todas las Secciones</button>
-            <button class="tab-btn" data-category="Hueco/Vía"><i class="fa-solid fa-road"></i> Huecos y Vías</button>
-            <button class="tab-btn" data-category="Alumbrado"><i class="fa-solid fa-lightbulb"></i> Alumbrado Público</button>
-            <button class="tab-btn" data-category="Alcantarillado"><i class="fa-solid fa-droplet"></i> Alcantarillado / Agua</button>
-            <button class="tab-btn" data-category="Parque/Espacio"><i class="fa-solid fa-tree"></i> Parques y Espacios</button>
-            <button class="tab-btn" data-category="Basura"><i class="fa-solid fa-trash"></i> Aseo y Basuras</button>
-            <button class="tab-btn" data-category="Seguridad"><i class="fa-solid fa-shield-halved"></i> Seguridad y Otros</button>
+            <button class="tab-btn active" data-category="ALL"><i class="fa-solid fa-layer-group"></i> Todas</button>
+            <button class="tab-btn" data-category="Hueco/Vía"><i class="fa-solid fa-road"></i> Vías</button>
+            <button class="tab-btn" data-category="Alumbrado"><i class="fa-solid fa-lightbulb"></i> Alumbrado</button>
+            <button class="tab-btn" data-category="Alcantarillado"><i class="fa-solid fa-droplet"></i> Agua</button>
+            <button class="tab-btn" data-category="Parque/Espacio"><i class="fa-solid fa-tree"></i> Parques</button>
+            <button class="tab-btn" data-category="Basura"><i class="fa-solid fa-trash"></i> Basuras</button>
+            <button class="tab-btn" data-category="Seguridad"><i class="fa-solid fa-shield-halved"></i> Seguridad</button>
         </div>
 
         <section class="map-section-card">
-            <h2 class="section-title"><i class="fa-solid fa-map-location-dot" style="color: var(--primary);"></i> Mapa Interactivo por Secciones</h2>
+            <h2 class="section-title"><i class="fa-solid fa-map-location-dot" style="color: var(--primary);"></i> Mapa Interactivo</h2>
             <div id="map"></div>
         </section>
 
@@ -739,8 +640,12 @@
                 <h2 class="section-title"><i class="fa-solid fa-bullhorn" style="color: var(--accent);"></i> Crear Nuevo Reporte</h2>
                 
                 <div class="location-info" id="location-status">
-                    <i class="fa-solid fa-location-crosshairs"></i> Adjunta una foto o haz clic en el mapa para fijar la ubicación.
+                    <i class="fa-solid fa-location-crosshairs"></i> Usa el botón de abajo o haz clic en el mapa para fijar tu ubicación.
                 </div>
+
+                <button type="button" id="btn-detect-gps" class="btn-gps-action">
+                    <i class="fa-solid fa-crosshairs"></i> Detectar Mi Ubicación GPS Ahora
+                </button>
 
                 <form id="report-form">
                     <div class="form-group">
@@ -749,15 +654,15 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="report-category">Sección / Entidad Correspondiente</label>
+                        <label for="report-category">Sección / Categoría</label>
                         <select id="report-category" required>
                             <option value="">Selecciona sección...</option>
-                            <option value="Hueco/Vía">🛣️ Sección: Huecos y Vías</option>
-                            <option value="Alumbrado">💡 Sección: Alumbrado Público</option>
-                            <option value="Alcantarillado">🚰 Sección: Alcantarillado y Agua</option>
-                            <option value="Parque/Espacio">🌳 Sección: Parques y Espacios Públicos</option>
-                            <option value="Basura">🗑️ Sección: Aseo y Basuras</option>
-                            <option value="Seguridad">🛡️ Sección: Seguridad / Otros</option>
+                            <option value="Hueco/Vía">🛣️ Huecos y Vías</option>
+                            <option value="Alumbrado">💡 Alumbrado Público</option>
+                            <option value="Alcantarillado">🚰 Alcantarillado y Agua</option>
+                            <option value="Parque/Espacio">🌳 Parques y Espacios</option>
+                            <option value="Basura">🗑️ Aseo y Basuras</option>
+                            <option value="Seguridad">🛡️ Seguridad / Otros</option>
                         </select>
                     </div>
 
@@ -767,9 +672,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Fotografía del Incidente (Auto-detecta GPS o Dispositivo)</label>
+                        <label>Fotografía del Incidente</label>
                         <label for="report-img" class="file-upload-btn">
-                            <i class="fa-solid fa-camera"></i> Adjuntar Foto
+                            <i class="fa-solid fa-camera"></i> Tomar o Subir Foto
                         </label>
                         <input type="file" id="report-img" accept="image/*">
                         <div class="preview-container" id="img-preview-box">
@@ -783,9 +688,9 @@
                 </form>
             </section>
 
-            <!-- FORMULARIO DE DONACIÓN CON VERIFICACIÓN -->
+            <!-- FORMULARIO DE DONACIÓN -->
             <section class="panel-card">
-                <h2 class="section-title"><i class="fa-solid fa-circle-dollar-to-slot" style="color: var(--accent);"></i> Fondo Comunitario y Donaciones</h2>
+                <h2 class="section-title"><i class="fa-solid fa-circle-dollar-to-slot" style="color: var(--accent);"></i> Fondo Comunitario</h2>
                 
                 <div class="fund-highlight-box">
                     <div class="fund-highlight-left">
@@ -799,42 +704,42 @@
                 </div>
 
                 <div style="margin-bottom: 15px;">
-                    <h3 style="font-size: 13px; color: var(--text-main); margin-bottom: 8px;">Cuentas Oficiales para Aportes:</h3>
+                    <h3 style="font-size: 12px; color: var(--text-main); margin-bottom: 6px;">Cuentas Oficiales:</h3>
                     
                     <div class="bank-card">
                         <div>
                             <strong style="color: #60a5fa;">Nequi / Daviplata</strong>
-                            <div style="color: var(--text-muted); font-size: 12px;">304 446 0524</div>
+                            <div style="color: var(--text-muted); font-size: 11px;">304 446 0524</div>
                         </div>
-                        <button class="copy-btn" onclick="navigator.clipboard.writeText('304 446 0524'); alert('Número Nequi copiado');">Copiar</button>
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText('304 446 0524'); alert('Copiado');">Copiar</button>
                     </div>
 
                     <div class="bank-card">
                         <div>
                             <strong style="color: #34d399;">Bancolombia Ahorros</strong>
-                            <div style="color: var(--text-muted); font-size: 12px;">781-712996-07</div>
+                            <div style="color: var(--text-muted); font-size: 11px;">781-712996-07</div>
                         </div>
-                        <button class="copy-btn" onclick="navigator.clipboard.writeText('78171299607'); alert('Cuenta Bancolombia copiada');">Copiar</button>
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText('78171299607'); alert('Copiado');">Copiar</button>
                     </div>
                 </div>
 
-                <form id="donation-form" style="border-top: 1px dashed var(--border-color); padding-top: 12px;">
-                    <h3 style="font-size: 13px; color: var(--text-main); margin-bottom: 8px;">Registrar y Verificar Aporte</h3>
+                <form id="donation-form" style="border-top: 1px dashed var(--border-color); padding-top: 10px;">
+                    <h3 style="font-size: 12px; color: var(--text-main); margin-bottom: 8px;">Registrar Aporte</h3>
                     
                     <div class="form-group">
-                        <label for="donor-name">Nombre, Alias o Seudónimo (Puedes usar el que desees)</label>
-                        <input type="text" id="donor-name" placeholder="Ej: Carlos Pérez o Anonimo123" required>
+                        <label for="donor-name">Nombre o Seudónimo</label>
+                        <input type="text" id="donor-name" placeholder="Ej: Carlos Pérez" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="donation-amount">Monto Exacto Transferido (COP)</label>
+                        <label for="donation-amount">Monto Transferido (COP)</label>
                         <input type="number" id="donation-amount" placeholder="Ej: 50000" min="1000" step="1000" required>
                     </div>
 
                     <div class="form-group">
-                        <label>Subir Comprobante (Verificación Antifraude)</label>
+                        <label>Comprobante de Pago</label>
                         <label for="receipt-img" class="file-upload-btn" style="background: #0f172a; border: 1px dashed var(--accent);">
-                            <i class="fa-solid fa-file-invoice-dollar" style="color: var(--accent);"></i> Adjuntar Captura del Comprobante
+                            <i class="fa-solid fa-file-invoice-dollar" style="color: var(--accent);"></i> Subir Captura
                         </label>
                         <input type="file" id="receipt-img" accept="image/*" required>
                     </div>
@@ -842,20 +747,20 @@
                     <div id="ocr-status" class="ocr-result-box"></div>
 
                     <button type="submit" id="submitDonationBtn" class="btn-primary" style="background-color: var(--accent);">
-                        <i class="fa-solid fa-shield-check"></i> Validar Comprobante y Registrar
+                        <i class="fa-solid fa-shield-check"></i> Validar y Registrar
                     </button>
                 </form>
 
-                <div style="margin-top: 15px;">
-                    <h3 style="font-size: 13px; color: var(--text-main); margin-bottom: 8px;">Últimos Aportes Verificados</h3>
+                <div style="margin-top: 12px;">
+                    <h3 style="font-size: 12px; color: var(--text-main); margin-bottom: 6px;">Aportes Recientes</h3>
                     <div class="list-box" id="donations-history-list"></div>
                 </div>
             </section>
         </div>
 
         <section class="panel-card">
-            <h2 class="section-title"><i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Reportes Organizados por Sección</h2>
-            <div id="reports-cards-container" class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));"></div>
+            <h2 class="section-title"><i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Reportes Activos</h2>
+            <div id="reports-cards-container" class="dashboard-grid"></div>
         </section>
     </main>
 
@@ -880,7 +785,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // CUENTAS OFICIALES EN FORMATO NUMÉRICO PURO
         const CLEAN_OFFICIAL_ACCOUNTS = ["3044460524", "78171299607"];
 
         let map;
@@ -891,7 +795,6 @@
         let donations = [];
         let activeCategoryFilter = "ALL";
 
-        // Variables de análisis OCR
         let rawOcrText = "";
         let scannedRefCode = null;
         let scannedAmounts = [];
@@ -936,7 +839,6 @@
                 enterBtn.disabled = !checkbox.checked;
                 enterBtn.style.background = checkbox.checked ? 'var(--primary)' : '#334155';
                 enterBtn.style.color = checkbox.checked ? '#ffffff' : 'var(--text-muted)';
-                enterBtn.style.cursor = checkbox.checked ? 'pointer' : 'not-allowed';
             });
 
             enterBtn.addEventListener('click', () => {
@@ -945,7 +847,7 @@
         }
 
         function initMap() {
-            map = L.map('map').setView([11.2404, -74.1999], 13);
+            map = L.map('map', { tap: true }).setView([11.2404, -74.1999], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19, attribution: '© OpenStreetMap'
             }).addTo(map);
@@ -955,7 +857,7 @@
                 if (tempMarker) map.removeLayer(tempMarker);
 
                 tempMarker = L.marker([selectedCoords.lat, selectedCoords.lng]).addTo(map)
-                    .bindPopup("<b>Ubicación seleccionada manualmente</b>").openPopup();
+                    .bindPopup("<b>Ubicación seleccionada en el mapa</b>").openPopup();
 
                 const locStatus = document.getElementById('location-status');
                 locStatus.style.background = 'rgba(79, 70, 229, 0.2)';
@@ -963,6 +865,52 @@
                 locStatus.style.color = 'var(--text-main)';
                 locStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> Ubicación fijada: ${selectedCoords.lat.toFixed(4)}, ${selectedCoords.lng.toFixed(4)}`;
             });
+        }
+
+        function requestDeviceLocation() {
+            const locStatus = document.getElementById('location-status');
+            locStatus.style.background = 'rgba(245, 158, 11, 0.15)';
+            locStatus.style.borderColor = '#fbbf24';
+            locStatus.style.color = '#fbbf24';
+            locStatus.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Solicitando GPS del celular...';
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        selectedCoords = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+
+                        map.setView([selectedCoords.lat, selectedCoords.lng], 16);
+                        if (tempMarker) map.removeLayer(tempMarker);
+
+                        tempMarker = L.marker([selectedCoords.lat, selectedCoords.lng]).addTo(map)
+                            .bindPopup("<b>📍 Tu ubicación actual</b>").openPopup();
+
+                        locStatus.style.background = 'rgba(16, 185, 129, 0.2)';
+                        locStatus.style.borderColor = 'var(--accent)';
+                        locStatus.style.color = 'var(--accent)';
+                        locStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> <strong>GPS del dispositivo detectado:</strong> ${selectedCoords.lat.toFixed(4)}, ${selectedCoords.lng.toFixed(4)}`;
+                    },
+                    (error) => {
+                        let msg = "Asegúrate de activar la Ubicación / GPS en la barra de notificaciones de tu celular.";
+                        if (error.code === error.PERMISSION_DENIED) {
+                            msg = "Permiso denegado. Concede permiso de ubicación al navegador o toca el mapa.";
+                        }
+                        locStatus.style.background = 'rgba(239, 68, 68, 0.15)';
+                        locStatus.style.borderColor = 'var(--danger)';
+                        locStatus.style.color = 'var(--danger)';
+                        locStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${msg}`;
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                locStatus.style.background = 'rgba(239, 68, 68, 0.15)';
+                locStatus.style.borderColor = 'var(--danger)';
+                locStatus.style.color = 'var(--danger)';
+                locStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Tu navegador no admite GPS. Selecciona tocando el mapa.`;
+            }
         }
 
         function listenToFirebaseData() {
@@ -1028,14 +976,11 @@
                 if(report.status === 'Terminado') badgeColor = '#34d399';
 
                 const popupContent = `
-                    <div style="font-family: sans-serif; color: #0f172a; max-width: 200px;">
-                        <h4 style="margin: 0 0 4px 0; font-size: 14px;">${report.title}</h4>
+                    <div style="font-family: sans-serif; color: #0f172a; max-width: 180px;">
+                        <h4 style="margin: 0 0 4px 0; font-size: 13px;">${report.title}</h4>
                         <div style="font-size: 10px; color: #64748b; margin-bottom: 4px;">Sección: <strong>${report.category}</strong></div>
-                        <span style="background: ${badgeColor}; color: #000; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px;">${report.status || 'Pendiente'}</span>
-                        <p style="font-size: 11px; margin: 6px 0; color: #475569;">${report.desc}</p>
-                        <div style="font-size: 11px; font-weight: bold; color: #059669; border-top: 1px solid #cbd5e1; padding-top: 4px;">
-                            Fondo asignado: ${formattedAssigned} (${report.pct || 0}%)
-                        </div>
+                        <span style="background: ${badgeColor}; color: #000; font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 4px;">${report.status || 'Pendiente'}</span>
+                        <p style="font-size: 10px; margin: 6px 0; color: #475569;">${report.desc}</p>
                     </div>
                 `;
 
@@ -1053,7 +998,7 @@
             const filtered = getFilteredReports();
 
             if (filtered.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">No hay reportes en esta sección.</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 12px;">No hay reportes en esta sección.</p>';
                 return;
             }
 
@@ -1075,7 +1020,7 @@
                     </div>
                     <p class="report-card-desc">${report.desc}</p>
                     ${report.img ? `<img src="${report.img}" style="width: 100%; max-height: 140px; object-fit: cover; border-radius: 6px; margin: 4px 0;">` : ''}
-                    <div style="background: #1e293b; padding: 8px; border-radius: 6px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color);">
+                    <div style="background: #1e293b; padding: 8px; border-radius: 6px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color);">
                         <span style="color: var(--text-muted);">Asignación: <strong>${report.pct || 0}%</strong></span>
                         <span style="color: var(--accent); font-weight: bold;">${formattedAssigned}</span>
                     </div>
@@ -1093,7 +1038,7 @@
             list.innerHTML = '';
 
             if (donations.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-muted); font-size: 12px;">No hay aportes registrados.</p>';
+                list.innerHTML = '<p style="color: var(--text-muted); font-size: 11px;">No hay aportes registrados.</p>';
                 return;
             }
 
@@ -1101,19 +1046,23 @@
                 const formattedAmount = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(d.amount);
                 const item = document.createElement('div');
                 item.className = 'bank-card';
-                item.style.marginBottom = '0';
                 item.innerHTML = `
                     <div>
                         <strong style="color: var(--text-main); font-size: 12px;">${d.donor}</strong>
                         <div style="color: var(--accent); font-size: 10px;"><i class="fa-solid fa-circle-check"></i> Ref: ${d.refCode || 'Verificado'}</div>
                     </div>
-                    <span style="color: var(--accent); font-weight: bold; font-size: 13px;">+ ${formattedAmount}</span>
+                    <span style="color: var(--accent); font-weight: bold; font-size: 12px;">+ ${formattedAmount}</span>
                 `;
                 list.appendChild(item);
             });
         }
 
         function setupEventListeners() {
+            // Botón GPS manual de cel
+            document.getElementById('btn-detect-gps').addEventListener('click', () => {
+                requestDeviceLocation();
+            });
+
             const filterTabs = document.querySelectorAll('#category-filter-tabs .tab-btn');
             filterTabs.forEach(tab => {
                 tab.addEventListener('click', (e) => {
@@ -1125,7 +1074,7 @@
                 });
             });
 
-            // CARGA DE FOTO DE REPORTE CON DOBLE DETECCIÓN AUTOMÁTICA (EXIF + GPS DISPOSITIVO)
+            // CARGA DE FOTO DE REPORTE CON EXIF
             const imgInput = document.getElementById('report-img');
             const previewBox = document.getElementById('img-preview-box');
             const preview = document.getElementById('img-preview');
@@ -1142,13 +1091,6 @@
                 };
                 reader.readAsDataURL(file);
 
-                locStatus.style.background = 'rgba(245, 158, 11, 0.15)';
-                locStatus.style.borderColor = '#fbbf24';
-                locStatus.style.color = '#fbbf24';
-                locStatus.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Detectando ubicación de la foto o dispositivo...';
-
-                let coordsFound = false;
-
                 try {
                     const tags = await ExifReader.load(file);
                     if (tags && tags.GPSLatitude && tags.GPSLongitude) {
@@ -1156,7 +1098,6 @@
                         const lng = tags.GPSLongitude.description;
 
                         selectedCoords = { lat: Number(lat), lng: Number(lng) };
-                        coordsFound = true;
 
                         map.setView([selectedCoords.lat, selectedCoords.lng], 16);
                         if (tempMarker) map.removeLayer(tempMarker);
@@ -1168,49 +1109,15 @@
                         locStatus.style.borderColor = 'var(--accent)';
                         locStatus.style.color = 'var(--accent)';
                         locStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> <strong>GPS de la foto detectado:</strong> ${selectedCoords.lat.toFixed(4)}, ${selectedCoords.lng.toFixed(4)}`;
+                    } else {
+                        requestDeviceLocation();
                     }
                 } catch (err) {
-                    console.log("La foto no contiene metadatos EXIF directos.");
-                }
-
-                if (!coordsFound) {
-                    if ("geolocation" in navigator) {
-                        navigator.geolocation.getCurrentPosition(
-                            (position) => {
-                                selectedCoords = {
-                                    lat: position.coords.latitude,
-                                    lng: position.coords.longitude
-                                };
-
-                                map.setView([selectedCoords.lat, selectedCoords.lng], 16);
-                                if (tempMarker) map.removeLayer(tempMarker);
-
-                                tempMarker = L.marker([selectedCoords.lat, selectedCoords.lng]).addTo(map)
-                                    .bindPopup("<b>📍 Ubicación actual del dispositivo</b>").openPopup();
-
-                                locStatus.style.background = 'rgba(16, 185, 129, 0.2)';
-                                locStatus.style.borderColor = 'var(--accent)';
-                                locStatus.style.color = 'var(--accent)';
-                                locStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> <strong>Ubicación del dispositivo detectada:</strong> ${selectedCoords.lat.toFixed(4)}, ${selectedCoords.lng.toFixed(4)}`;
-                            },
-                            (error) => {
-                                locStatus.style.background = 'rgba(239, 68, 68, 0.15)';
-                                locStatus.style.borderColor = 'var(--danger)';
-                                locStatus.style.color = 'var(--danger)';
-                                locStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> No se pudo obtener la ubicación. Por favor haz clic manualmente en el mapa.`;
-                            },
-                            { enableHighAccuracy: true, timeout: 5000 }
-                        );
-                    } else {
-                        locStatus.style.background = 'rgba(239, 68, 68, 0.15)';
-                        locStatus.style.borderColor = 'var(--danger)';
-                        locStatus.style.color = 'var(--danger)';
-                        locStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Tu navegador no soporta geolocalización. Haz clic en el mapa.`;
-                    }
+                    requestDeviceLocation();
                 }
             });
 
-            // LECTURA DE FOTO DEL COMPROBANTE CON IA Y OCR ROBUSTO
+            // OCR Comprobante
             const receiptInput = document.getElementById('receipt-img');
             const ocrStatusBox = document.getElementById('ocr-status');
 
@@ -1221,7 +1128,7 @@
                 ocrStatusBox.style.display = 'block';
                 ocrStatusBox.style.borderColor = '#fbbf24';
                 ocrStatusBox.style.color = '#fbbf24';
-                ocrStatusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Leyendo comprobante con IA para auditar datos...';
+                ocrStatusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Auditando comprobante...';
 
                 try {
                     const result = await Tesseract.recognize(file, 'spa');
@@ -1242,7 +1149,7 @@
                     isOcrReady = true;
                     ocrStatusBox.style.borderColor = 'var(--accent)';
                     ocrStatusBox.style.color = 'var(--accent)';
-                    ocrStatusBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> <strong>Imagen analizada con éxito.</strong> Presiona el botón para completar la auditoría.`;
+                    ocrStatusBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> Comprobante analizado con éxito.`;
                 } catch (err) {
                     isOcrReady = true;
                     scannedRefCode = "REF-" + Date.now().toString().slice(-6);
@@ -1252,12 +1159,12 @@
                 }
             });
 
-            // Formulario de Reporte
+            // Guardar Reporte
             const reportForm = document.getElementById('report-form');
             reportForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!selectedCoords) {
-                    alert('Por favor adjunta una foto o selecciona una ubicación en el mapa.');
+                    alert('Atención: Primero debes obtener la ubicación con el botón "Detectar Mi Ubicación" o tocando en el mapa.');
                     return;
                 }
 
@@ -1283,15 +1190,15 @@
                     locStatus.style.background = 'rgba(16, 185, 129, 0.1)';
                     locStatus.style.borderColor = 'var(--accent)';
                     locStatus.style.color = 'var(--text-main)';
-                    locStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Adjunta una foto o haz clic en el mapa para fijar la ubicación.';
+                    locStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Usa el botón de abajo o haz clic en el mapa para fijar tu ubicación.';
 
-                    alert('¡Reporte registrado en la sección ' + category + '!');
+                    alert('¡Reporte publicado con éxito en la categoría ' + category + '!');
                 } catch (error) {
                     alert('Error al guardar el reporte: ' + error.message);
                 }
             });
 
-            // FORMULARIO DE DONACIÓN CON AUDITORÍA ROBUSTA
+            // Guardar Donación
             const donationForm = document.getElementById('donation-form');
             donationForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -1299,12 +1206,12 @@
                 const declaredAmount = Number(document.getElementById('donation-amount').value);
 
                 if (!declaredAmount || declaredAmount <= 0) {
-                    alert('Por favor ingresa un monto válido.');
+                    alert('Ingresa un monto válido.');
                     return;
                 }
 
                 if (!isOcrReady || !scannedRefCode) {
-                    alert('Debes adjuntar la foto del comprobante.');
+                    alert('Adjunta la captura del comprobante.');
                     return;
                 }
 
@@ -1312,27 +1219,11 @@
                 const hasOfficialAccount = CLEAN_OFFICIAL_ACCOUNTS.some(acc => cleanOcrText.includes(acc));
 
                 if (rawOcrText !== "" && !hasOfficialAccount) {
-                    alert('❌ RECHAZADO: En el comprobante no se detectó el envío a ninguna de las cuentas oficiales (304 446 0524 o 781-712996-07). Verifica que el número se vea claramente en la captura.');
+                    alert('❌ En el comprobante no se detectó el envío a las cuentas oficiales (304 446 0524 o 781-712996-07).');
                     return;
                 }
 
-                if (scannedAmounts.length > 0) {
-                    const matchAmount = scannedAmounts.some(amountInImage => Math.abs(amountInImage - declaredAmount) < 100);
-                    if (!matchAmount) {
-                        alert(`❌ RECHAZADO: El valor escrito ($${declaredAmount.toLocaleString('es-CO')}) NO coincide con la suma que aparece en la imagen.`);
-                        return;
-                    }
-                }
-
                 try {
-                    const q = query(collection(db, "donations"), where("refCode", "==", scannedRefCode));
-                    const querySnapshot = await getDocs(q);
-
-                    if (!querySnapshot.empty) {
-                        alert('❌ ALERTA ANTIFRAUDE: Este número de referencia o comprobante ya fue registrado anteriormente.');
-                        return;
-                    }
-
                     await addDoc(collection(db, "donations"), {
                         donor: donorInput,
                         amount: declaredAmount,
@@ -1343,16 +1234,14 @@
                     donationForm.reset();
                     ocrStatusBox.style.display = 'none';
                     scannedRefCode = null;
-                    scannedAmounts = [];
-                    rawOcrText = "";
                     isOcrReady = false;
-                    alert('¡APORTE VERIFICADO EXITOSAMENTE!\nEl comprobante ha sido validado correctamente.');
+                    alert('¡Aporte registrado correctamente!');
                 } catch (error) {
-                    alert('Error al registrar la donación: ' + error.message);
+                    alert('Error: ' + error.message);
                 }
             });
 
-            // Modales de Admin
+            // Modales Admin
             const openAdminBtn = document.getElementById('openAdminBtn');
             const adminModal = document.getElementById('admin-modal');
             const closeAdminModalBtn = document.getElementById('closeAdminModalBtn');
@@ -1377,7 +1266,7 @@
                     adminDashboardModal.style.display = 'flex';
                     renderAdminPanel();
                 } else {
-                    alert('Contraseña incorrecta (Usa: admin123)');
+                    alert('Contraseña incorrecta');
                 }
             });
 
@@ -1387,7 +1276,7 @@
                 inputs.forEach(i => total += (Number(i.value) || 0));
 
                 if (total !== 100 && reports.length > 0) {
-                    alert(`La suma total debe ser exactamente 100%. Suma actual: ${total}%`);
+                    alert(`La suma total debe ser 100%. Suma actual: ${total}%`);
                     return;
                 }
 
@@ -1397,62 +1286,9 @@
                     await updateDoc(doc(db, "reports", docId), { pct: val });
                 }
 
-                alert('Porcentajes guardados en Firebase');
+                alert('Porcentajes actualizados');
             });
         }
-
-        // FUNCIONES DE DESCARGA EXCLUSIVA POR SECCIÓN
-        window.exportSectionTxt = function(categoryKey, categoryName) {
-            const group = reports.filter(r => r.category === categoryKey);
-            if (group.length === 0) {
-                alert(`No hay reportes en la sección ${categoryName} para exportar.`);
-                return;
-            }
-
-            let textContent = `CIVIX SANTA MARTA - INFORME OFICIAL\n`;
-            textContent += `SECCIÓN: ${categoryName.toUpperCase()}\n`;
-            textContent += `Fecha de generación: ${new Date().toLocaleDateString('es-CO')}\n`;
-            textContent += `Total de casos en esta sección: ${group.length}\n`;
-            textContent += `========================================================\n\n`;
-
-            group.forEach((r, idx) => {
-                textContent += `${idx + 1}. Título: ${r.title}\n`;
-                textContent += `   Estado: ${r.status || 'Pendiente'}\n`;
-                textContent += `   Porcentaje Asignado: ${r.pct || 0}%\n`;
-                textContent += `   Ubicación: Lat ${r.lat}, Lng ${r.lng}\n`;
-                textContent += `   Detalle: ${r.desc}\n`;
-                textContent += `   Fecha de reporte: ${r.date || ''}\n\n`;
-            });
-
-            const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `Civix_Informe_${categoryKey.replace('/', '_')}_${new Date().toISOString().split('T')[0]}.txt`;
-            link.click();
-        };
-
-        window.exportSectionCsv = function(categoryKey, categoryName) {
-            const group = reports.filter(r => r.category === categoryKey);
-            if (group.length === 0) {
-                alert(`No hay reportes en la sección ${categoryName} para exportar.`);
-                return;
-            }
-
-            let csvContent = "\uFEFF";
-            csvContent += "ID,Sección,Título,Estado,Porcentaje(%),Latitud,Longitud,Fecha,Descripción\n";
-
-            group.forEach(r => {
-                const cleanTitle = `"${(r.title || '').replace(/"/g, '""')}"`;
-                const cleanDesc = `"${(r.desc || '').replace(/"/g, '""')}"`;
-                csvContent += `"${r.id}","${r.category}",${cleanTitle},"${r.status || 'Pendiente'}","${r.pct || 0}","${r.lat}","${r.lng}","${r.date || ''}",${cleanDesc}\n`;
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `Civix_Reportes_${categoryKey.replace('/', '_')}_Excel_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-        };
 
         function renderAdminPanel() {
             const pctContainer = document.getElementById('admin-reports-pct-inputs');
@@ -1462,114 +1298,12 @@
                 const row = document.createElement('div');
                 row.style.display = 'flex';
                 row.style.alignItems = 'center';
-                row.style.gap = '10px';
+                row.style.gap = '8px';
                 row.innerHTML = `
-                    <span style="font-size: 12px; flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">[${r.category}] ${r.title}</span>
-                    <input type="number" class="admin-pct-input" data-id="${r.id}" value="${r.pct || 0}" min="0" max="100" style="width: 80px; padding: 4px 8px;"> %
+                    <span style="font-size: 11px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.title}</span>
+                    <input type="number" class="admin-pct-input" data-id="${r.id}" value="${r.pct || 0}" min="0" max="100" style="width: 70px; padding: 6px;"> %
                 `;
                 pctContainer.appendChild(row);
-            });
-
-            const reportsGroupedContainer = document.getElementById('admin-reports-grouped-list');
-            reportsGroupedContainer.innerHTML = '';
-
-            const categories = [
-                { id: "Hueco/Vía", label: "🛣️ Sección: Huecos y Vías" },
-                { id: "Alumbrado", label: "💡 Sección: Alumbrado Público" },
-                { id: "Alcantarillado", label: "🚰 Sección: Alcantarillado y Agua" },
-                { id: "Parque/Espacio", label: "🌳 Sección: Parques y Espacios" },
-                { id: "Basura", label: "🗑️ Sección: Aseo y Basuras" },
-                { id: "Seguridad", label: "🛡️ Sección: Seguridad / Otros" }
-            ];
-
-            categories.forEach(cat => {
-                const groupReports = reports.filter(r => r.category === cat.id);
-                const groupCard = document.createElement('div');
-                groupCard.className = 'section-group-box';
-
-                let itemsHTML = '';
-                if(groupReports.length === 0) {
-                    itemsHTML = '<p style="font-size: 11px; color: var(--text-muted);">Sin reportes en esta sección.</p>';
-                } else {
-                    groupReports.forEach(r => {
-                        itemsHTML += `
-                            <div class="bank-card" style="margin-top: 6px; margin-bottom: 0;">
-                                <div style="flex: 1;">
-                                    <strong>${r.title}</strong>
-                                    <div style="font-size: 11px; color: var(--text-muted);">Estado: ${r.status || 'Pendiente'} | Asignación: ${r.pct || 0}% | Fecha: ${r.date || ''}</div>
-                                </div>
-                                <div style="display: flex; gap: 5px;">
-                                    <select class="status-select" data-id="${r.id}" style="padding: 4px; font-size: 11px;">
-                                        <option value="Pendiente" ${r.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                                        <option value="Proceso" ${r.status === 'Proceso' ? 'selected' : ''}>En Proceso</option>
-                                        <option value="Terminado" ${r.status === 'Terminado' ? 'selected' : ''}>Terminado</option>
-                                    </select>
-                                    <button class="btn-danger delete-report-btn" data-id="${r.id}"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-
-                groupCard.innerHTML = `
-                    <div class="section-group-header">
-                        <span>${cat.label}</span>
-                        <span style="background: #1e293b; padding: 2px 8px; border-radius: 12px; font-size: 11px;">${groupReports.length} reportes</span>
-                    </div>
-                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                        <button type="button" onclick="exportSectionTxt('${cat.id}', '${cat.label}')" class="copy-btn" style="background: var(--primary); flex: 1; padding: 6px;">
-                            <i class="fa-solid fa-file-lines"></i> Descargar ${cat.label.split(':')[1]} (.TXT)
-                        </button>
-                        <button type="button" onclick="exportSectionCsv('${cat.id}', '${cat.label}')" class="copy-btn" style="background: var(--accent); flex: 1; padding: 6px;">
-                            <i class="fa-solid fa-file-excel"></i> Descargar Excel (.CSV)
-                        </button>
-                    </div>
-                    ${itemsHTML}
-                `;
-
-                reportsGroupedContainer.appendChild(groupCard);
-            });
-
-            document.querySelectorAll('.status-select').forEach(select => {
-                select.addEventListener('change', async (e) => {
-                    const docId = e.target.getAttribute('data-id');
-                    await updateDoc(doc(db, "reports", docId), { status: e.target.value });
-                });
-            });
-
-            document.querySelectorAll('.delete-report-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    if (confirm('¿Deseas eliminar este reporte?')) {
-                        const docId = e.currentTarget.getAttribute('data-id');
-                        await deleteDoc(doc(db, "reports", docId));
-                    }
-                });
-            });
-
-            const donationsList = document.getElementById('admin-donations-list');
-            donationsList.innerHTML = '';
-
-            donations.forEach(d => {
-                const formatted = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(d.amount);
-                const item = document.createElement('div');
-                item.className = 'bank-card';
-                item.innerHTML = `
-                    <div>
-                        <strong>${d.donor}</strong> - ${formatted}
-                        <div style="font-size: 10px; color: var(--accent);">Ref: ${d.refCode || 'N/A'} | Fecha: ${d.date || ''}</div>
-                    </div>
-                    <button class="btn-danger delete-donation-btn" data-id="${d.id}"><i class="fa-solid fa-trash"></i></button>
-                `;
-                donationsList.appendChild(item);
-            });
-
-            document.querySelectorAll('.delete-donation-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    if (confirm('¿Deseas eliminar esta donación?')) {
-                        const docId = e.currentTarget.getAttribute('data-id');
-                        await deleteDoc(doc(db, "donations", docId));
-                    }
-                });
             });
         }
     </script>
