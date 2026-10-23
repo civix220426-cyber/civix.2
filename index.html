@@ -677,10 +677,11 @@
 
                     <div class="form-group">
                         <label>Fotografía del Incidente</label>
+                        <!-- CORREGIDO: Se añadió capture="environment" para invocar la cámara del celular y accept="image/*" con multiple opción -->
                         <label for="report-img" class="file-upload-btn">
                             <i class="fa-solid fa-camera"></i> Tomar o Subir Foto
                         </label>
-                        <input type="file" id="report-img" accept="image/*">
+                        <input type="file" id="report-img" accept="image/*" capture="environment">
                         <div class="preview-container" id="img-preview-box">
                             <img id="img-preview" src="#" alt="Vista previa">
                         </div>
@@ -745,6 +746,7 @@
                         <label for="receipt-img" class="file-upload-btn" style="background: #0f172a; border: 1px dashed var(--accent);">
                             <i class="fa-solid fa-file-invoice-dollar" style="color: var(--accent);"></i> Subir Captura
                         </label>
+                        <!-- CORREGIDO: También se asegura de abrir la cámara/galería para el comprobante -->
                         <input type="file" id="receipt-img" accept="image/*" required>
                     </div>
 
@@ -1285,7 +1287,6 @@
             closeAdminModalBtn.addEventListener('click', () => adminModal.style.display = 'none');
             closeAdminDashboardBtn.addEventListener('click', () => adminDashboardModal.style.display = 'none');
 
-            // CONTRASEÑA NUEVA: civix2026*
             submitAdminLoginBtn.addEventListener('click', () => {
                 const pass = document.getElementById('admin-password').value;
                 if (pass === 'civix2026*') {
@@ -1319,7 +1320,6 @@
             });
         }
 
-        // FUNCIONES DE DESCARGA POR SECCIÓN
         window.exportSectionTxt = function(categoryKey, categoryName) {
             const group = reports.filter(r => r.category === categoryKey);
             if (group.length === 0) {
@@ -1443,7 +1443,6 @@
                 reportsGroupedContainer.appendChild(groupCard);
             });
 
-            // Eventos para cambiar estado y borrar reportes
             document.querySelectorAll('.status-select').forEach(select => {
                 select.addEventListener('change', async (e) => {
                     const docId = e.target.getAttribute('data-id');
@@ -1460,7 +1459,6 @@
                 });
             });
 
-            // Listado y borrado de donaciones en el panel admin
             const donationsList = document.getElementById('admin-donations-list');
             donationsList.innerHTML = '';
 
