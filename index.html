@@ -677,7 +677,6 @@
 
                     <div class="form-group">
                         <label>Fotografía del Incidente</label>
-                        <!-- SIN capture para que el móvil muestre el menú flotante: Cámara o Galería -->
                         <label for="report-img" class="file-upload-btn">
                             <i class="fa-solid fa-camera"></i> Tomar o Subir Foto
                         </label>
@@ -744,7 +743,7 @@
                     <div class="form-group">
                         <label>Comprobante de Pago</label>
                         <label for="receipt-img" class="file-upload-btn" style="background: #0f172a; border: 1px dashed var(--accent);">
-                            <i class="fa-solid fa-file-invoice-dollar" style="color: var(--accent);"></i> Subir Captura
+                            <i class="fa-solid fa-file-invoice-dollar" style="color: var(--accent);"></i> Tomar o Subir Captura
                         </label>
                         <input type="file" id="receipt-img" accept="image/*" required>
                     </div>
@@ -1149,10 +1148,10 @@
                 }
             });
 
+            // IA ESTRICTA DE COMPROBANTES (Antifraude restaurada)
             const receiptInput = document.getElementById('receipt-img');
             const ocrStatusBox = document.getElementById('ocr-status');
 
-            // IA de comprobantes restaurada a su flexibilidad original (sin bloqueos estrictos de cuentas)
             receiptInput.addEventListener('change', async (e) => {
                 if (!e.target.files || !e.target.files[0]) return;
                 const file = e.target.files[0];
@@ -1160,7 +1159,7 @@
                 ocrStatusBox.style.display = 'block';
                 ocrStatusBox.style.borderColor = '#fbbf24';
                 ocrStatusBox.style.color = '#fbbf24';
-                ocrStatusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Leyendo comprobante...';
+                ocrStatusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Auditando comprobante con IA...';
 
                 try {
                     const result = await Tesseract.recognize(file, 'spa');
@@ -1181,7 +1180,7 @@
                     isOcrReady = true;
                     ocrStatusBox.style.borderColor = 'var(--accent)';
                     ocrStatusBox.style.color = 'var(--accent)';
-                    ocrStatusBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> Comprobante procesado con éxito (Código: ${scannedRefCode}).`;
+                    ocrStatusBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> Comprobante auditado. Ref: ${scannedRefCode}`;
                 } catch (err) {
                     isOcrReady = true;
                     scannedRefCode = "REF-" + Date.now().toString().slice(-6);
@@ -1246,6 +1245,23 @@
                     return;
                 }
 
+                // VALIDACIÓN ANTIFRAUDE ESTRICTA
+                const cleanOcrText = rawOcrText.replace(/[\s\-_]/g, '').replace(/o/g, '0').replace(/l|i/g, '1');
+                const hasOfficialAccount = CLEAN_OFFICIAL_ACCOUNTS.some(acc => cleanOcrText.includes(acc));
+
+                if (rawOcrText !== "" && !hasOfficialAccount) {
+                    alert('❌ COMPROBANTE RECHAZADO: No se detectó el número de cuenta oficial (304 446 0524 o 781-712996-07) en la imagen.');
+                    return;
+                }
+
+                if (scannedAmounts.length > 0) {
+                    const amountMatches = scannedAmounts.some(amt => Math.abs(amt - declaredAmount) <= 500);
+                    if (!amountMatches) {
+                        alert(`❌ COMPROBANTE RECHAZADO: El monto ingresado ($${declaredAmount.toLocaleString()}) no coincide con los valores detectados por la IA en la factura.`);
+                        return;
+                    }
+                }
+
                 try {
                     await addDoc(collection(db, "donations"), {
                         donor: donorInput,
@@ -1258,7 +1274,7 @@
                     ocrStatusBox.style.display = 'none';
                     scannedRefCode = null;
                     isOcrReady = false;
-                    alert('¡Aporte registrado correctamente!');
+                    alert('¡Aporte validado y registrado con éxito!');
                 } catch (error) {
                     alert('Error: ' + error.message);
                 }
