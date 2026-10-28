@@ -4,60 +4,173 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Civix Santa Marta - Plataforma de participación ciudadana para el reporte y mapeo de infraestructura urbana.">
-    <title>Civix - Santa Marta | Infraestructura y Comunidad</title>
+    <title>Civix - Santa Marta | Plataforma Ciudadana</title>
     
     <!-- Configuración PWA (Instalación Móvil) -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="#090d16">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <!-- Tipografía Profesional: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Librerías de Exportación (Excel & PDF) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
+            window.addEventListener('load', function() {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('PWA lista e instalable:', reg))
-                    .catch(err => console.error('Error PWA:', err));
+                    .then(function(reg) { console.log('PWA lista:', reg); })
+                    .catch(function(err) { console.error('Error PWA:', err); });
             });
         }
+
+        window.refreshMapSize = function() {
+            if (window.civixMap) {
+                try {
+                    window.civixMap.invalidateSize(true);
+                } catch(e) { console.log("Map resize:", e); }
+            }
+        };
+
+        window.skipIntroNow = function(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            var intro = document.getElementById('cinematic-intro');
+            var skipBtn = document.getElementById('skip-intro-btn');
+            
+            if (intro) {
+                intro.style.opacity = '0';
+                intro.style.transition = 'opacity 0.5s ease';
+                setTimeout(function() {
+                    intro.style.display = 'none';
+                    try { intro.remove(); } catch(err) { if (intro.parentNode) intro.parentNode.removeChild(intro); }
+                }, 500);
+            }
+            if (skipBtn) {
+                skipBtn.style.display = 'none';
+                try { skipBtn.remove(); } catch(err) { if (skipBtn.parentNode) skipBtn.parentNode.removeChild(skipBtn); }
+            }
+
+            window.refreshMapSize();
+            setTimeout(window.refreshMapSize, 100);
+            setTimeout(window.refreshMapSize, 350);
+            setTimeout(window.refreshMapSize, 700);
+        };
+
+        window.toggleTermsBtn = function() {
+            var checkbox = document.getElementById('accept-terms');
+            var enterBtn = document.getElementById('enter-app-btn');
+            var acceptBox = document.getElementById('terms-accept-box');
+            if (checkbox && enterBtn) {
+                if (checkbox.checked) {
+                    enterBtn.disabled = false;
+                    enterBtn.classList.add('active');
+                    if (acceptBox) acceptBox.classList.add('checked');
+                } else {
+                    enterBtn.disabled = true;
+                    enterBtn.classList.remove('active');
+                    if (acceptBox) acceptBox.classList.remove('checked');
+                }
+            }
+        };
+
+        window.acceptTermsAndContinue = function(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            var checkbox = document.getElementById('accept-terms');
+            var termsModal = document.getElementById('terms-modal');
+            if (checkbox && checkbox.checked) {
+                localStorage.setItem('civix_terms_accepted', 'true');
+                if (termsModal) {
+                    termsModal.style.opacity = '0';
+                    termsModal.style.transition = 'opacity 0.3s ease';
+                    setTimeout(function() {
+                        termsModal.style.display = 'none';
+                        try { termsModal.remove(); } catch(err) { if (termsModal.parentNode) termsModal.parentNode.removeChild(termsModal); }
+                    }, 300);
+                }
+            }
+        };
+
+        window.addEventListener('resize', window.refreshMapSize);
+        window.addEventListener('orientationchange', function() {
+            setTimeout(window.refreshMapSize, 300);
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') {
+                var intro = document.getElementById('cinematic-intro');
+                if (intro && intro.style.display !== 'none') {
+                    window.skipIntroNow();
+                }
+            }
+        });
     </script>
 
-    <!-- Leaflet CSS (Mapa) -->
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
-    <!-- FontAwesome (Iconos) -->
+    <!-- FontAwesome Iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- OCR Engine (Tesseract.js) -->
+    <!-- OCR Engine -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
-    <!-- EXIF Reader (Para extraer coordenadas GPS de las fotos) -->
+    <!-- EXIF Reader -->
     <script src="https://cdn.jsdelivr.net/npm/exifreader@4.23.0/dist/exif-reader.js"></script>
 
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg-dark: #0f172a;
-            --card-bg: #1e293b;
-            --border-color: #334155;
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-shadow: #3730a3;
+            --primary-glow: rgba(99, 102, 241, 0.35);
+            --accent: #10b981;
+            --accent-dark: #059669;
+            --accent-shadow: #047857;
+            --accent-glow: rgba(16, 185, 129, 0.35);
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --danger-shadow: #b91c1c;
+            --bg-dark: #070a12;
+            --card-bg: linear-gradient(165deg, rgba(26, 35, 50, 0.82) 0%, rgba(13, 19, 31, 0.94) 100%);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --card-highlight: rgba(255, 255, 255, 0.18);
+            --card-3d-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.15);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --accent: #10b981;
-            --danger: #ef4444;
-            --danger-hover: #dc2626;
+            --radius: 22px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        input[type="file"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
         }
 
         body {
             background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.18) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(15, 23, 42, 0.5) 0px, transparent 100%);
+            background-attachment: fixed;
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -72,13 +185,12 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 99999;
+            z-index: 999998;
             display: flex;
             justify-content: center;
             align-items: center;
             background: #020617;
             overflow: hidden;
-            transition: opacity 0.8s ease, visibility 0.8s ease;
         }
 
         .video-background {
@@ -90,7 +202,7 @@
             min-height: 100vh;
             min-width: 177.77vh;
             transform: translate(-50%, -50%);
-            pointer-events: none;
+            pointer-events: none !important;
             opacity: 0.45;
         }
 
@@ -98,6 +210,7 @@
             width: 100%;
             height: 100%;
             border: none;
+            pointer-events: none !important;
         }
 
         .intro-overlay {
@@ -106,269 +219,491 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, rgba(15, 23, 42, 0.4) 0%, rgba(2, 6, 23, 0.85) 100%);
+            background: radial-gradient(circle at center, rgba(11, 17, 32, 0.2) 0%, rgba(2, 6, 23, 0.95) 100%);
             z-index: 2;
+            pointer-events: none !important;
         }
 
-        /* MODALES */
+        #skip-intro-btn {
+            position: fixed !important;
+            bottom: 28px !important;
+            right: 22px !important;
+            z-index: 9999999 !important;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.28) !important;
+            color: #ffffff !important;
+            padding: 13px 26px !important;
+            border-radius: 35px !important;
+            cursor: pointer !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.8px;
+            pointer-events: auto !important;
+            box-shadow: 0 6px 0 #3730a3, 0 15px 30px rgba(79, 70, 229, 0.45) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            backdrop-filter: blur(12px);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #skip-intro-btn:active {
+            transform: translateY(3px) !important;
+            box-shadow: 0 2px 0 #3730a3, 0 8px 18px rgba(79, 70, 229, 0.45) !important;
+        }
+
+        /* MODALES ESTRUCTURALES CON RELIEVE 3D */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(8px);
+            background: rgba(7, 10, 18, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
-            padding: 15px;
+            z-index: 99999;
+            padding: 16px;
         }
 
         .modal-card {
             background: var(--card-bg);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--card-border);
+            border-top: 1px solid var(--card-highlight);
             width: 100%;
-            max-width: 500px;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            max-width: 680px;
+            border-radius: var(--radius);
+            padding: 28px;
+            box-shadow: var(--card-3d-shadow);
             color: var(--text-main);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-card::before {
+            content: '';
+            position: absolute;
+            top: -70px;
+            right: -70px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, transparent 70%);
+            pointer-events: none;
         }
 
         .modal-card-admin {
             background: var(--card-bg);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--card-border);
+            border-top: 1px solid var(--card-highlight);
             width: 100%;
-            max-width: 850px;
+            max-width: 880px;
             max-height: 90vh;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            border-radius: var(--radius);
+            padding: 28px;
+            box-shadow: var(--card-3d-shadow);
             color: var(--text-main);
             display: flex;
             flex-direction: column;
         }
 
-        .admin-scroll-area {
-            overflow-y: auto;
-            max-height: 65vh;
-            padding-right: 5px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-top: 15px;
+        /* TÉRMINOS Y CONDICIONES */
+        .terms-header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(79, 70, 229, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            color: #c7d2fe;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
         }
 
-        /* CABECERA Y DISEÑO RESPONSIVO MÓVIL */
+        .terms-scroll-area {
+            background: rgba(9, 13, 22, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 18px;
+            padding: 18px;
+            height: 360px;
+            overflow-y: auto;
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-bottom: 18px;
+            line-height: 1.65;
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .terms-scroll-area::-webkit-scrollbar { width: 6px; }
+        .terms-scroll-area::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); border-radius: 10px; }
+        .terms-scroll-area::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+        }
+
+        .terms-section-card {
+            background: rgba(26, 35, 50, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .terms-section-card:hover {
+            border-color: rgba(99, 102, 241, 0.35);
+            background: rgba(26, 35, 50, 0.65);
+        }
+
+        .terms-section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .terms-num-badge {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: #ffffff;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 900;
+            box-shadow: 0 3px 8px rgba(79, 70, 229, 0.45);
+            flex-shrink: 0;
+        }
+
+        .terms-list {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 8px;
+        }
+
+        .terms-list li {
+            position: relative;
+            padding-left: 18px;
+            margin-bottom: 6px;
+            color: #cbd5e1;
+        }
+
+        .terms-list li::before {
+            content: "•";
+            position: absolute;
+            left: 4px;
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .terms-callout {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(13, 19, 31, 0.95) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            border-left: 4px solid var(--accent);
+            border-radius: 12px;
+            padding: 13px 15px;
+            margin-top: 10px;
+            font-size: 11px;
+            color: #e2e8f0;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .terms-accept-container {
+            background: rgba(13, 19, 31, 0.75);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+        }
+
+        .terms-accept-container:hover {
+            border-color: rgba(99, 102, 241, 0.45);
+            background: rgba(26, 35, 50, 0.85);
+        }
+
+        .terms-accept-container.checked {
+            border-color: var(--accent);
+            background: rgba(16, 185, 129, 0.1);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+
+        .custom-checkbox {
+            width: 24px;
+            height: 24px;
+            border-radius: 8px;
+            border: 2px solid var(--text-muted);
+            background: rgba(9, 13, 22, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .terms-accept-container.checked .custom-checkbox {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.45);
+        }
+
+        .custom-checkbox i {
+            color: #ffffff;
+            font-size: 13px;
+            display: none;
+        }
+
+        .terms-accept-container.checked .custom-checkbox i {
+            display: block;
+        }
+
+        /* CABECERA Y APLICACIÓN */
         header.main-header {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            border-bottom: 1px solid var(--border-color);
-            padding: 16px 20px;
+            background: rgba(13, 19, 31, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--card-border);
+            padding: 18px 26px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.6);
         }
 
         .brand-title h1 {
-            font-size: 22px;
-            color: var(--primary);
+            font-size: 23px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            letter-spacing: -0.5px;
         }
 
         .brand-title p {
-            font-size: 13px;
+            font-size: 11px;
             color: var(--text-muted);
-            margin-top: 2px;
+            margin-top: 3px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
         }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             width: 100%;
             justify-content: space-between;
         }
 
         @media (min-width: 768px) {
             .header-actions { width: auto; justify-content: flex-end; }
-            .brand-title h1 { font-size: 26px; }
+            .brand-title h1 { font-size: 25px; }
         }
 
         .stat-card {
-            background: #0f172a;
-            border: 1px solid var(--border-color);
-            padding: 8px 14px;
-            border-radius: 10px;
+            background: rgba(26, 35, 50, 0.65);
+            border: 1px solid var(--card-border);
+            border-top: 1px solid var(--card-highlight);
+            padding: 10px 18px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             flex: 1;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 15px rgba(0,0,0,0.35);
         }
 
-        .stat-card i { font-size: 20px; }
         .stat-info { display: flex; flex-direction: column; }
-        .stat-label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
-        .stat-value { font-size: 15px; font-weight: 700; color: var(--text-main); }
+        .stat-label { font-size: 9px; text-transform: uppercase; color: var(--text-muted); font-weight: 800; letter-spacing: 0.6px; }
+        .stat-value { font-size: 16px; font-weight: 900; color: var(--text-main); }
 
         .btn-new-report {
-            padding: 10px 14px;
-            border-radius: 8px;
+            padding: 11px 18px;
+            border-radius: 12px;
             color: var(--text-main);
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 800;
             cursor: pointer;
             white-space: nowrap;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid var(--card-border);
+            border-top: 1px solid var(--card-highlight);
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        /* FILTROS */
+        .btn-new-report:hover { background: rgba(255, 255, 255, 0.14); transform: translateY(-1px); }
+
+        /* PILS Y FILTROS */
         .category-tabs {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             overflow-x: auto;
             padding-bottom: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             -webkit-overflow-scrolling: touch;
         }
 
+        .category-tabs::-webkit-scrollbar { display: none; }
+
         .tab-btn {
-            background: #0f172a;
-            border: 1px solid var(--border-color);
+            background: rgba(26, 35, 50, 0.65);
+            border: 1px solid var(--card-border);
+            border-top: 1px solid var(--card-highlight);
             color: var(--text-muted);
-            padding: 8px 14px;
-            border-radius: 20px;
+            padding: 10px 18px;
+            border-radius: 35px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 800;
             white-space: nowrap;
             cursor: pointer;
-        }
-
-        .tab-btn.active { background: var(--primary); border-color: var(--primary); color: #ffffff; }
-
-        .fund-highlight-box {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(15, 23, 42, 0.9));
-            border: 1px solid var(--accent);
-            border-radius: 8px;
-            padding: 14px;
-            margin-bottom: 12px;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
             display: flex;
             align-items: center;
-            justify-content: space-between;
-        }
-
-        .fund-highlight-left { display: flex; align-items: center; gap: 10px; }
-        .fund-highlight-left i { font-size: 24px; color: var(--accent); }
-        .fund-highlight-left span { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; }
-        .fund-highlight-left strong { font-size: 12px; color: var(--text-main); }
-        .fund-highlight-value { font-size: 20px; font-weight: 800; color: var(--accent); }
-
-        .report-card-item {
-            background: #0f172a;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
             gap: 8px;
         }
 
-        .report-card-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .report-card-title { font-size: 14px; font-weight: 700; color: var(--text-main); }
-
-        .status-badge {
-            font-size: 10px;
-            font-weight: 700;
-            padding: 4px 8px;
-            border-radius: 20px;
-            text-transform: uppercase;
+        .tab-btn.active { 
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            border-color: transparent; 
+            color: #ffffff; 
+            box-shadow: 0 5px 0 #3730a3, 0 10px 20px var(--primary-glow);
+            transform: translateY(-2px);
         }
-
-        .status-badge.status-pending { background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
-        .status-badge.status-process { background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
-        .status-badge.status-completed { background-color: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
-
-        .report-card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
-        .report-card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11px;
-            color: #64748b;
-            border-top: 1px dashed var(--border-color);
-            padding-top: 8px;
-        }
-
-        .report-category-tag { background: #1e293b; color: #cbd5e1; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
 
         .app-container {
-            max-width: 1200px;
+            max-width: 1240px;
             width: 100%;
-            margin: 15px auto;
-            padding: 0 15px;
+            margin: 18px auto;
+            padding: 0 18px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 22px;
         }
 
-        .map-section-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 15px;
+        .map-section-card, .panel-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-top: 1px solid var(--card-highlight);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--card-3d-shadow);
         }
 
-        .section-title { font-size: 15px; margin-bottom: 12px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+        .section-title { 
+            font-size: 16px; 
+            font-weight: 900;
+            margin-bottom: 16px; 
+            color: var(--text-main); 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            letter-spacing: -0.3px;
+        }
 
-        #map { width: 100%; height: 380px; border-radius: 8px; border: 1px solid var(--border-color); z-index: 1; }
+        #map { 
+            width: 100%; 
+            height: 400px; 
+            min-height: 400px;
+            border-radius: 16px; 
+            border: 1px solid var(--card-border); 
+            z-index: 1; 
+            background: #090d16;
+            overflow: hidden;
+            box-shadow: inset 0 3px 10px rgba(0,0,0,0.7);
+        }
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+            gap: 20px;
         }
 
-        .panel-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 16px;
-        }
-
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 8px; }
 
         input[type="text"], input[type="number"], input[type="password"], textarea, select {
             width: 100%;
-            padding: 12px;
-            background: #0f172a;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            padding: 13px 16px;
+            background: rgba(9, 13, 22, 0.85);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
             color: var(--text-main);
-            font-size: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
         }
 
-        textarea { resize: vertical; height: 80px; }
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(99, 102, 241, 0.28);
+        }
 
+        textarea { resize: vertical; height: 90px; }
+
+        /* BOTONES PUSH 3D */
         .btn-gps-action {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            background: #10b981;
+            gap: 10px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: #ffffff;
             border: none;
-            padding: 10px 14px;
-            border-radius: 8px;
+            padding: 14px;
+            border-radius: 14px;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 800;
             cursor: pointer;
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
+            box-shadow: 0 5px 0 var(--accent-shadow), 0 12px 24px var(--accent-glow);
+            transition: all 0.15s ease;
+        }
+
+        .btn-gps-action:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 var(--accent-shadow), 0 6px 12px var(--accent-glow);
         }
 
         .file-upload-btn {
@@ -376,109 +711,213 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 12px;
-            background: #334155;
+            padding: 13px;
+            background: rgba(26, 35, 50, 0.8);
             color: var(--text-main);
-            border-radius: 8px;
+            border: 1px solid var(--card-border);
+            border-top: 1px solid var(--card-highlight);
+            border-radius: 14px;
             cursor: pointer;
             font-size: 12px;
-            text-align: center;
-            width: 100%;
-            font-weight: 600;
+            font-weight: 800;
+            transition: all 0.15s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            user-select: none;
         }
 
-        input[type="file"] { display: none; }
+        .file-upload-btn:hover { background: rgba(38, 50, 71, 0.9); }
+        .file-upload-btn:active { transform: translateY(2px); box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
 
-        .preview-container { margin-top: 8px; display: none; text-align: center; }
-        .preview-container img { max-width: 100%; max-height: 140px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .preview-container { margin-top: 12px; display: none; text-align: center; }
+        .preview-container img { max-width: 100%; max-height: 160px; border-radius: 12px; border: 1px solid var(--card-border); box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
 
         .btn-primary {
-            background-color: var(--primary);
-            color: white;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: #ffffff;
             border: none;
-            padding: 14px;
-            border-radius: 8px;
+            padding: 15px;
+            border-radius: 14px;
             cursor: pointer;
             width: 100%;
-            font-weight: bold;
-            font-size: 14px;
-            margin-top: 6px;
+            font-weight: 900;
+            font-size: 13px;
+            margin-top: 8px;
+            box-shadow: 0 5px 0 var(--primary-shadow), 0 12px 24px var(--primary-glow);
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 var(--primary-shadow), 0 6px 12px var(--primary-glow);
         }
 
         .btn-danger {
-            background-color: var(--danger);
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 800;
             cursor: pointer;
+            box-shadow: 0 3px 0 var(--danger-shadow);
+            transition: all 0.15s ease;
+        }
+
+        .btn-danger:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 var(--danger-shadow);
         }
 
         .location-info {
             font-size: 12px;
             color: var(--accent);
-            margin-bottom: 10px;
+            margin-bottom: 14px;
             background: rgba(16, 185, 129, 0.1);
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px dashed var(--accent);
-            line-height: 1.4;
-        }
-
-        .list-box { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-
-        .bank-card {
-            background: #0f172a;
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 13px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px dashed rgba(16, 185, 129, 0.45);
+            line-height: 1.45;
             display: flex;
-            justify-content: space-between;
             align-items: center;
             gap: 10px;
         }
 
-        .copy-btn {
-            background: var(--border-color);
-            border: none;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
+        .fund-highlight-box {
+            background: linear-gradient(165deg, rgba(16, 185, 129, 0.15) 0%, rgba(13, 19, 31, 0.85) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            border-top: 1px solid rgba(16, 185, 129, 0.55);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
         }
 
-        .section-group-box {
-            background: #0f172a;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
-        }
+        .fund-highlight-left { display: flex; align-items: center; gap: 14px; }
+        .fund-highlight-left i { font-size: 28px; color: var(--accent); filter: drop-shadow(0 2px 8px rgba(16,185,129,0.4)); }
+        .fund-highlight-left span { font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; display: block; letter-spacing: 0.5px; }
+        .fund-highlight-left strong { font-size: 14px; color: var(--text-main); }
+        .fund-highlight-value { font-size: 24px; font-weight: 900; color: var(--accent); text-shadow: 0 2px 6px rgba(0,0,0,0.6); }
 
-        .section-group-header {
-            font-size: 13px;
-            font-weight: bold;
-            color: var(--accent);
-            margin-bottom: 8px;
+        .bank-card {
+            background: rgba(9, 13, 22, 0.75);
+            border: 1px solid var(--card-border);
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 6px;
+            gap: 10px;
+            margin-bottom: 10px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
         }
 
-        .ocr-result-box {
-            background: #0f172a;
-            border: 1px dashed var(--border-color);
-            border-radius: 6px;
-            padding: 10px;
-            margin-top: 8px;
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--card-border);
+            color: white;
+            padding: 7px 14px;
+            border-radius: 8px;
+            cursor: pointer;
             font-size: 11px;
-            color: var(--text-muted);
-            display: none;
+            font-weight: 800;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+            transition: all 0.15s ease;
+        }
+
+        .copy-btn:active { transform: translateY(1px); }
+
+        .report-card-item {
+            background: linear-gradient(160deg, rgba(26, 35, 50, 0.85) 0%, rgba(13, 19, 31, 0.96) 100%);
+            border: 1px solid var(--card-border);
+            border-top: 1px solid var(--card-highlight);
+            border-radius: 16px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.55);
+        }
+
+        .report-card-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 30px -5px rgba(0, 0, 0, 0.7);
+        }
+
+        .report-card-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .report-card-title { font-size: 15px; font-weight: 800; color: var(--text-main); }
+
+        .status-badge {
+            font-size: 10px;
+            font-weight: 900;
+            padding: 5px 12px;
+            border-radius: 25px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .status-badge.status-pending { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }
+        .status-badge.status-process { background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.35); }
+        .status-badge.status-completed { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); }
+
+        .report-card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+        .report-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #64748b;
+            border-top: 1px dashed var(--card-border);
+            padding-top: 12px;
+        }
+
+        .report-category-tag { background: rgba(255, 255, 255, 0.06); color: #cbd5e1; padding: 4px 10px; border-radius: 8px; font-weight: 700; font-size: 10px; }
+
+        .expense-card-item {
+            background: linear-gradient(160deg, rgba(26, 35, 50, 0.85) 0%, rgba(13, 19, 31, 0.96) 100%);
+            border: 1px solid var(--card-border);
+            border-top: 1px solid var(--card-highlight);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.55);
+        }
+
+        .expense-header { display: flex; justify-content: space-between; align-items: center; }
+        .expense-title { font-size: 14px; font-weight: 800; color: var(--text-main); }
+        .expense-amount { color: var(--danger); font-weight: 900; font-size: 14px; }
+
+        .expense-img-thumb {
+            width: 100%;
+            max-height: 190px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .expense-img-thumb:hover { opacity: 0.88; }
+
+        .list-box { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+
+        #enter-app-btn.active {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+            color: #ffffff !important;
+            cursor: pointer !important;
+            opacity: 1 !important;
+            box-shadow: 0 5px 0 #3730a3, 0 12px 25px var(--primary-glow) !important;
         }
     </style>
 </head>
@@ -495,67 +934,168 @@
         
         <div class="intro-overlay"></div>
 
-        <button id="skip-intro-btn" style="position: absolute; bottom: 30px; right: 20px; z-index: 10; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: #cbd5e1; padding: 10px 20px; border-radius: 30px; cursor: pointer; font-size: 12px; font-weight: 600; backdrop-filter: blur(10px);">
-            Saltar Intro ⏭
-        </button>
-
-        <div style="position: relative; z-index: 3; text-align: center; width: 100%; max-width: 900px; padding: 20px; display: flex; justify-content: center; align-items: center; height: 200px;">
+        <div style="position: relative; z-index: 3; text-align: center; width: 100%; max-width: 900px; padding: 20px; display: flex; justify-content: center; align-items: center; height: 200px; pointer-events: none;">
             <div id="intro-step-1" style="position: absolute; width: 100%; opacity: 1; transition: opacity 1s ease;">
-                <h1 style="font-size: clamp(40px, 8vw, 75px); font-weight: 900; letter-spacing: 6px; color: #ffffff; text-transform: uppercase; margin: 0;">
-                    <span style="color: #4f46e5;">Ci</span>vix
+                <h1 style="font-size: clamp(42px, 9vw, 80px); font-weight: 900; letter-spacing: 8px; color: #ffffff; text-transform: uppercase; margin: 0; text-shadow: 0 12px 30px rgba(0,0,0,0.9);">
+                    <span style="color: #6366f1;">Ci</span>vix
                 </h1>
-                <p style="color: #cbd5e1; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; margin-top: 8px; font-weight: 600;">Santa Marta</p>
+                <p style="color: #cbd5e1; font-size: 13px; letter-spacing: 4px; text-transform: uppercase; margin-top: 10px; font-weight: 700;">Santa Marta</p>
             </div>
             
-            <div id="intro-step-2" style="position: absolute; width: 100%; opacity: 0; transition: opacity 1s ease; pointer-events: none;">
-                <h2 style="font-size: clamp(18px, 4vw, 28px); font-weight: 400; letter-spacing: 4px; color: #f8fafc; text-transform: uppercase; margin: 0;">
+            <div id="intro-step-2" style="position: absolute; width: 100%; opacity: 0; transition: opacity 1s ease;">
+                <h2 style="font-size: clamp(20px, 4.5vw, 32px); font-weight: 800; letter-spacing: 4px; color: #f8fafc; text-transform: uppercase; margin: 0; text-shadow: 0 12px 30px rgba(0,0,0,0.9);">
                     Un verdadero cambio
                 </h2>
-                <div style="width: 50px; height: 3px; background: #10b981; margin: 12px auto 0 auto; border-radius: 2px;"></div>
+                <div style="width: 60px; height: 4px; background: #10b981; margin: 14px auto 0 auto; border-radius: 3px; box-shadow: 0 0 12px var(--accent-glow);"></div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL DE TÉRMINOS OFICIALES DE CIVIX -->
+    <!-- BOTÓN SALTAR INTRO -->
+    <button id="skip-intro-btn" onclick="window.skipIntroNow(event)" ontouchstart="window.skipIntroNow(event)" type="button">
+        Saltar Intro ⏭
+    </button>
+
+    <!-- MODAL DE TÉRMINOS Y CONDICIONES -->
     <div id="terms-modal" class="modal-overlay" role="dialog" aria-modal="true" style="display: flex;">
-        <div class="modal-card" style="max-width: 680px;">
-            <div style="text-align: center; margin-bottom: 12px;">
-                <span style="background: #065f46; color: #34d399; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold;">CIVIX SANTA MARTA</span>
-                <h2 style="margin: 6px 0 2px 0; font-size: 16px; color: #ffffff;">TÉRMINOS Y CONDICIONES DE CIVIX</h2>
-                <p style="font-size: 10px; color: var(--text-muted); margin: 0;">Última actualización: septiembre de 2026</p>
+        <div class="modal-card">
+            <div style="text-align: center; margin-bottom: 18px;">
+                <span class="terms-header-badge"><i class="fa-solid fa-file-contract"></i> Acuerdo Oficial Civix</span>
+                <h2 style="margin: 12px 0 4px 0; font-size: 22px; font-weight: 900; color: #ffffff; letter-spacing: -0.4px;">Términos y Condiciones</h2>
+                <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Lee atentamente las políticas de uso transparente de la plataforma</p>
             </div>
 
-            <div style="background: #0f172a; border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; height: 260px; overflow-y: auto; font-size: 12px; color: #cbd5e1; margin-bottom: 14px; line-height: 1.5;">
-                <p style="margin-bottom: 10px;">Bienvenido a Civix – Santa Marta, una plataforma creada para facilitar la participación ciudadana y contribuir a la identificación de problemas que afectan a la comunidad y al entorno urbano.</p>
-                <p style="margin-bottom: 10px; font-weight: bold; color: var(--accent);">Al utilizar Civix, aceptas estos Términos y Condiciones.</p>
+            <div class="terms-scroll-area">
+                <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 14px; padding: 14px; font-size: 12px; color: #e2e8f0;">
+                    👋 <strong>Bienvenido a Civix Santa Marta</strong>. Esta plataforma facilita la participación ciudadana para identificar y solucionar problemas de infraestructura en nuestra comunidad.
+                </div>
 
-                <h4 style="color: var(--primary); margin: 10px 0 4px 0;">1. ¿Qué es Civix?</h4>
-                <p style="margin-bottom: 8px;">Civix permite a los usuarios informar sobre problemas urbanos como huecos, basuras, alumbrado, espacios públicos y seguridad con fotografías y ubicación.</p>
+                <!-- 1 -->
+                <div class="terms-section-card">
+                    <div class="terms-section-title">
+                        <span class="terms-num-badge">1</span>
+                        <span>¿Qué es Civix?</span>
+                    </div>
+                    <p>Civix es una plataforma de participación ciudadana que permite a los usuarios informar sobre problemas presentes en la ciudad, como huecos, acumulación de basura, fallas en alumbrado, deterioro de espacios públicos, fugas de agua y situaciones de infraestructura.</p>
+                    <p style="margin-top: 6px; font-size: 11px; color: var(--text-muted);">Los reportes pueden incluir descripciones, fotografías y ubicación exacta fijada por GPS.</p>
+                </div>
 
-                <h4 style="color: var(--primary); margin: 10px 0 4px 0;">2. Reportes ciudadanos</h4>
-                <p style="margin-bottom: 8px;">El usuario se compromete a proporcionar información real y verídica sin fines difamatorios.</p>
+                <!-- 2 -->
+                <div class="terms-section-card">
+                    <div class="terms-section-title">
+                        <span class="terms-num-badge">2</span>
+                        <span>Reportes Ciudadanos</span>
+                    </div>
+                    <p>Los usuarios pueden crear reportes relacionados con problemas reales de la ciudad. El usuario se compromete a proporcionar información verdadera y a no utilizar Civix para publicar datos falsos o engañosos.</p>
+                </div>
 
-                <h4 style="color: var(--primary); margin: 10px 0 4px 0;">3. Donaciones y Sostenibilidad</h4>
-                <p style="margin-bottom: 8px;">Las donaciones voluntarias ayudan a financiar las soluciones comunitarias y el mantenimiento de la plataforma Civix.</p>
+                <!-- 3 -->
+                <div class="terms-section-card">
+                    <div class="terms-section-title">
+                        <span class="terms-num-badge">3</span>
+                        <span>Uso Responsable</span>
+                    </div>
+                    <p>Está estrictamente prohibido:</p>
+                    <ul class="terms-list">
+                        <li>Publicar información deliberadamente falsa o manipulada.</li>
+                        <li>Acosar, amenazar o intimidar a personas o entidades.</li>
+                        <li>Publicar datos personales de terceros sin autorización previa.</li>
+                        <li>Crear reportes masivos ficticios para alterar el mapa comunitario.</li>
+                    </ul>
+                </div>
+
+                <!-- 4 -->
+                <div class="terms-section-card">
+                    <div class="terms-section-title">
+                        <span class="terms-num-badge">4</span>
+                        <span>Fotografías y Contenido</span>
+                    </div>
+                    <p>El usuario es responsable del contenido que sube. Al adjuntar fotografías, procure no exponer innecesariamente documentos de identidad ni placas privadas.</p>
+                </div>
+
+                <!-- 5 -->
+                <div class="terms-section-card">
+                    <div class="terms-section-title">
+                        <span class="terms-num-badge">5</span>
+                        <span>Ubicación GPS</span>
+                    </div>
+                    <p>Al utilizar las funciones de geolocalización, Civix usará las coordenadas para fijar en el mapa interactivo el lugar exacto del incidente comunitario.</p>
+                </div>
+
+                <!-- 6 -->
+                <div class="terms-section-card">
+                    <div class="terms-section-title">
+                        <span class="terms-num-badge">6</span>
+                        <span>Donaciones y Transparencia Financiera</span>
+                    </div>
+                    <p>Civix permite que los usuarios realicen aportes voluntarios destinados a apoyar la atención y compra de materiales para la solución de reportes.</p>
+                    
+                    <div style="margin-top: 10px; padding-left: 10px; border-left: 3px solid var(--accent);">
+                        <strong style="color: var(--accent); font-size: 12px;">6.1 Distribución de las Donaciones</strong>
+                        <p style="margin-top: 4px;">Civix podrá retener una comisión transparente previamente informada sobre cada donación para el mantenimiento del servidor y desarrollo de la app. El resto se destina íntegramente al proyecto.</p>
+                    </div>
+
+                    <div class="terms-callout">
+                        <i class="fa-solid fa-calculator" style="color: var(--accent); font-size: 20px; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: #ffffff;">Ejemplo Práctico:</strong>
+                            <div style="margin-top: 2px;">Si la donación es de <strong>$100.000 COP</strong> con una comisión del 10%, <strong>$10.000 COP</strong> se destinan al mantenimiento de la plataforma y <strong>$90.000 COP</strong> van directo al fondo de materiales.</div>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 10px; font-size: 11px;"><strong>6.2 Transparencia Garantizada:</strong> Todos los gastos realizados son publicados con su respectiva foto de factura física en la sección pública de comprobantes.</p>
+                </div>
+
+                <!-- 7 -->
+                <div class="terms-section-card">
+                    <div class="terms-section-title">
+                        <span class="terms-num-badge">7</span>
+                        <span>Sostenibilidad de la Plataforma</span>
+                    </div>
+                    <p>Civix se financia a través de comisiones transparentes, patrocinios y alianzas con organizaciones para asegurar la continuidad del servicio gratuito para la ciudadanía.</p>
+                </div>
+
+                <!-- 8 al 12 -->
+                <div class="terms-section-card">
+                    <div class="terms-section-title">
+                        <span class="terms-num-badge">8</span>
+                        <span>Disponibilidad, Privacidad y Propiedad</span>
+                    </div>
+                    <p>Civix protege tus datos de acuerdo con la legislación colombiana aplicable. Los elementos de la plataforma, logos y marcas pertenecen a sus desarrolladores.</p>
+                </div>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                <input type="checkbox" id="accept-terms" style="width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;">
-                <label for="accept-terms" style="font-size: 12px; color: #e2e8f0; margin-bottom: 0;">Acepto los Términos y Condiciones de Civix.</label>
+            <!-- CAJA INTERACTIVA DE ACEPTACIÓN CON CHECKBOX CUSTOM -->
+            <div id="terms-accept-box" class="terms-accept-container" onclick="var cb=document.getElementById('accept-terms'); cb.checked=!cb.checked; window.toggleTermsBtn();">
+                <div class="custom-checkbox">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <input type="checkbox" id="accept-terms" style="display: none;" onchange="window.toggleTermsBtn()">
+                <div style="font-size: 12px; color: #f8fafc; font-weight: 700;">
+                    He leído y acepto los <span style="color: var(--accent);">Términos y Condiciones</span> de Civix Santa Marta.
+                </div>
             </div>
 
-            <button id="enter-app-btn" disabled style="width: 100%; padding: 12px; background: #334155; color: var(--text-muted); border: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
+            <button id="enter-app-btn" onclick="window.acceptTermsAndContinue(event)" ontouchstart="window.acceptTermsAndContinue(event)" disabled style="width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--card-border); border-radius: 14px; font-weight: 900; font-size: 13px; cursor: not-allowed; opacity: 0.6; transition: all 0.2s ease;">
                 Continuar a la App 🚀
             </button>
+        </div>
+    </div>
+
+    <!-- MODAL VISOR DE FOTOS -->
+    <div id="photo-viewer-modal" class="modal-overlay" style="display: none;" onclick="this.style.display='none'">
+        <div style="max-width: 90vw; max-height: 90vh; text-align: center;">
+            <img id="photo-viewer-img" src="#" style="max-width: 100%; max-height: 85vh; border-radius: 14px; border: 1px solid var(--card-border); box-shadow: 0 25px 50px rgba(0,0,0,0.85);">
+            <p style="color: white; font-size: 12px; margin-top: 12px; opacity: 0.8;">Toca en cualquier parte para cerrar</p>
         </div>
     </div>
 
     <!-- MODAL ADMIN LOGIN -->
     <div id="admin-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true">
         <div class="modal-card">
-            <div style="text-align: center; margin-bottom: 14px;">
-                <h2 style="font-size: 18px; color: #ffffff;"><i class="fa-solid fa-lock" style="color: var(--primary);"></i> Acceso Administrador</h2>
-                <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Ingresa la contraseña para ingresar.</p>
+            <div style="text-align: center; margin-bottom: 18px;">
+                <h2 style="font-size: 19px; color: #ffffff;"><i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Acceso Administrador</h2>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Ingresa la clave para acceder al panel de gestión.</p>
             </div>
 
             <div class="form-group">
@@ -563,9 +1103,9 @@
                 <input type="password" id="admin-password" placeholder="Contraseña...">
             </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 12px;">
-                <button type="button" id="closeAdminModalBtn" class="copy-btn" style="flex: 1; padding: 10px; background: #334155;">Cancelar</button>
-                <button type="button" id="submitAdminLoginBtn" class="btn-primary" style="flex: 1; margin-top: 0; padding: 10px;">Entrar</button>
+            <div style="display: flex; gap: 12px; margin-top: 16px;">
+                <button type="button" id="closeAdminModalBtn" class="copy-btn" style="flex: 1; padding: 13px; background: rgba(255, 255, 255, 0.05);">Cancelar</button>
+                <button type="button" id="submitAdminLoginBtn" class="btn-primary" style="flex: 1; margin-top: 0; padding: 13px;">Entrar</button>
             </div>
         </div>
     </div>
@@ -573,52 +1113,116 @@
     <!-- PANEL ADMIN -->
     <div id="admin-dashboard-modal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true">
         <div class="modal-card-admin">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                <h2 style="font-size: 16px; color: #ffffff;"><i class="fa-solid fa-user-shield" style="color: var(--accent);"></i> Panel de Control Admin</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 14px;">
+                <h2 style="font-size: 17px; color: #ffffff;"><i class="fa-solid fa-user-shield" style="color: var(--accent);"></i> Panel de Control Admin</h2>
                 <button type="button" id="closeAdminDashboardBtn" class="btn-danger">Cerrar ✕</button>
             </div>
 
-            <div class="admin-scroll-area">
-                <div style="background: #1e293b; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <h3 style="font-size: 13px; color: var(--text-main);">⚙️ Asignar Porcentajes (%)</h3>
-                    </div>
-                    <div id="admin-reports-pct-inputs" style="display: flex; flex-direction: column; gap: 8px;"></div>
-                    <button type="button" id="savePctBtn" class="btn-primary" style="margin-top: 10px; background: var(--accent); padding: 10px;">Guardar Porcentajes</button>
+            <div style="overflow-y: auto; max-height: 65vh; padding-right: 6px; display: flex; flex-direction: column; gap: 18px; margin-top: 18px;">
+
+                <div style="background: rgba(13, 19, 31, 0.85); border: 1px solid rgba(16, 185, 129, 0.35); padding: 18px; border-radius: 16px;">
+                    <h3 style="font-size: 14px; color: var(--accent); margin-bottom: 8px;">
+                        <i class="fa-solid fa-receipt"></i> Subir Comprobante de Gasto (Prueba de Inversión)
+                    </h3>
+                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 16px;">
+                        Sube facturas o fotos de compras realizadas con el fondo comunitario.
+                    </p>
+
+                    <form id="admin-expense-form">
+                        <div class="form-group">
+                            <label for="expense-title">Concepto del Gasto / Material</label>
+                            <input type="text" id="expense-title" placeholder="Ej: Compra de 5 bultos de cemento y asfalto" required>
+                        </div>
+
+                        <div style="display: flex; gap: 12px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label for="expense-amount">Valor Gastado (COP)</label>
+                                <input type="number" id="expense-amount" placeholder="Ej: 150000" min="500" required>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label for="expense-category">Sección Vinculada</label>
+                                <select id="expense-category" required>
+                                    <option value="Hueco/Vía">🛣️ Vías y Huecos</option>
+                                    <option value="Alumbrado">💡 Alumbrado</option>
+                                    <option value="Alcantarillado">🚰 Agua / Alcantarillado</option>
+                                    <option value="Parque/Espacio">🌳 Parques</option>
+                                    <option value="Basura">🗑️ Aseo</option>
+                                    <option value="Seguridad">🛡️ Seguridad / Otros</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="expense-desc">Descripción / Proveedor / Detalle</label>
+                            <textarea id="expense-desc" placeholder="Ferretería El Progreso - Factura #1042..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Foto de la Factura o Comprobante Físico</label>
+                            <div style="display: flex; gap: 10px;">
+                                <label for="expense-img-cam" class="file-upload-btn" style="flex: 1; background: rgba(9, 13, 22, 0.85); border: 1px dashed var(--accent);">
+                                    <i class="fa-solid fa-camera" style="color: var(--accent);"></i> Cámara
+                                </label>
+                                <input type="file" id="expense-img-cam" accept="image/*" capture="environment">
+
+                                <label for="expense-img-gal" class="file-upload-btn" style="flex: 1; background: rgba(9, 13, 22, 0.85); border: 1px dashed var(--accent);">
+                                    <i class="fa-solid fa-images" style="color: var(--accent);"></i> Galería
+                                </label>
+                                <input type="file" id="expense-img-gal" accept="image/*">
+                            </div>
+
+                            <div class="preview-container" id="expense-preview-box">
+                                <img id="expense-preview-img" src="#" alt="Vista previa factura">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 5px 0 var(--accent-shadow); padding: 13px;">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Publicar Comprobante Oficial
+                        </button>
+                    </form>
                 </div>
 
-                <h3 style="font-size: 13px; color: var(--text-main); margin-top: 10px;">Gestión y Descarga de Reportes por Secciones</h3>
-                <div id="admin-reports-grouped-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                <div style="background: rgba(13, 19, 31, 0.85); border: 1px solid var(--card-border); padding: 16px; border-radius: 16px;">
+                    <h3 style="font-size: 13px; color: var(--text-main); margin-bottom: 10px;">⚙️ Asignar Porcentajes a Reportes (%)</h3>
+                    <div id="admin-reports-pct-inputs" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                    <button type="button" id="savePctBtn" class="btn-primary" style="margin-top: 12px; padding: 12px;">Guardar Porcentajes</button>
+                </div>
 
-                <h3 style="font-size: 13px; color: var(--text-main); margin-top: 15px;">Gestión de Aportes Registrados</h3>
-                <div id="admin-donations-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                <h3 style="font-size: 14px; color: var(--text-main); margin-top: 10px;">Gestión y Descargas por Sección</h3>
+                <div id="admin-reports-grouped-list" style="display: flex; flex-direction: column; gap: 14px;"></div>
+
+                <h3 style="font-size: 14px; color: var(--text-main); margin-top: 10px;">Comprobantes de Gastos Publicados</h3>
+                <div id="admin-expenses-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+
+                <h3 style="font-size: 14px; color: var(--text-main); margin-top: 10px;">Gestión de Aportes Registrados</h3>
+                <div id="admin-donations-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
             </div>
         </div>
     </div>
 
-    <!-- CABECERA -->
+    <!-- CABECERA PRINCIPAL -->
     <header class="main-header">
         <div class="brand-title">
-            <h1><i class="fa-solid fa-city"></i> Civix Santa Marta</h1>
+            <h1><i class="fa-solid fa-city" style="color: var(--primary);"></i> Civix Santa Marta</h1>
             <p>Plataforma de reporte e infraestructura comunitaria</p>
         </div>
         <div class="header-actions">
             <div class="stat-card">
-                <i class="fa-solid fa-triangle-exclamation" style="color: #fbbf24;"></i>
+                <i class="fa-solid fa-triangle-exclamation" style="color: #fbbf24; font-size: 19px;"></i>
                 <div class="stat-info">
                     <span class="stat-label">Reportes</span>
                     <span class="stat-value" id="stat-active-reports">0</span>
                 </div>
             </div>
             <div class="stat-card">
-                <i class="fa-solid fa-hand-holding-dollar" style="color: var(--accent);"></i>
+                <i class="fa-solid fa-vault" style="color: var(--accent); font-size: 19px;"></i>
                 <div class="stat-info">
                     <span class="stat-label">Fondo</span>
                     <span class="stat-value" id="stat-total-funds">$0</span>
                 </div>
             </div>
-            <button class="btn-new-report" id="openAdminBtn" style="background: #334155; border: 1px solid var(--border-color);">
-                <i class="fa-solid fa-user-shield"></i> Admin
+            <button class="btn-new-report" id="openAdminBtn">
+                <i class="fa-solid fa-shield-halved"></i> Admin
             </button>
         </div>
     </header>
@@ -636,16 +1240,16 @@
         </div>
 
         <section class="map-section-card">
-            <h2 class="section-title"><i class="fa-solid fa-map-location-dot" style="color: var(--primary);"></i> Mapa Interactivo</h2>
+            <h2 class="section-title"><i class="fa-solid fa-map-location-dot" style="color: var(--primary);"></i> Mapa Interactivo de Incidentes</h2>
             <div id="map"></div>
         </section>
 
         <div class="dashboard-grid">
             <section class="panel-card">
-                <h2 class="section-title"><i class="fa-solid fa-bullhorn" style="color: var(--accent);"></i> Crear Nuevo Reporte</h2>
+                <h2 class="section-title"><i class="fa-solid fa-bullhorn" style="color: var(--primary);"></i> Crear Nuevo Reporte</h2>
                 
                 <div class="location-info" id="location-status">
-                    <i class="fa-solid fa-location-crosshairs"></i> Usa el botón de abajo o haz clic en el mapa para fijar tu ubicación.
+                    <i class="fa-solid fa-location-crosshairs" style="font-size: 16px;"></i> Usa el botón de abajo o toca el mapa para fijar tu ubicación.
                 </div>
 
                 <button type="button" id="btn-detect-gps" class="btn-gps-action">
@@ -678,14 +1282,14 @@
 
                     <div class="form-group">
                         <label>Fotografía del Incidente</label>
-                        <div style="display: flex; gap: 8px;">
-                            <label for="report-img-camera" class="file-upload-btn" style="flex: 1; background: #1e293b; border: 1px solid var(--primary); color: #ffffff;">
-                                <i class="fa-solid fa-camera"></i> Tomar Foto
+                        <div style="display: flex; gap: 10px;">
+                            <label for="report-img-camera" class="file-upload-btn" style="flex: 1; background: rgba(99, 102, 241, 0.12); border-color: rgba(99, 102, 241, 0.35);">
+                                <i class="fa-solid fa-camera" style="color: var(--primary);"></i> Cámara
                             </label>
                             <input type="file" id="report-img-camera" accept="image/*" capture="environment">
 
-                            <label for="report-img-gallery" class="file-upload-btn" style="flex: 1; background: #1e293b; border: 1px solid var(--accent); color: #ffffff;">
-                                <i class="fa-solid fa-images"></i> Galería
+                            <label for="report-img-gallery" class="file-upload-btn" style="flex: 1; background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35);">
+                                <i class="fa-solid fa-images" style="color: var(--accent);"></i> Galería
                             </label>
                             <input type="file" id="report-img-gallery" accept="image/*">
                         </div>
@@ -703,7 +1307,7 @@
 
             <!-- FORMULARIO DE DONACIÓN -->
             <section class="panel-card">
-                <h2 class="section-title"><i class="fa-solid fa-circle-dollar-to-slot" style="color: var(--accent);"></i> Fondo Comunitario</h2>
+                <h2 class="section-title"><i class="fa-solid fa-hand-holding-dollar" style="color: var(--accent);"></i> Fondo Comunitario</h2>
                 
                 <div class="fund-highlight-box">
                     <div class="fund-highlight-left">
@@ -716,28 +1320,28 @@
                     <div class="fund-highlight-value" id="highlight-total-funds">$0</div>
                 </div>
 
-                <div style="margin-bottom: 15px;">
-                    <h3 style="font-size: 12px; color: var(--text-main); margin-bottom: 6px;">Cuentas Oficiales:</h3>
+                <div style="margin-bottom: 18px;">
+                    <h3 style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 0.6px; font-weight: 800;">Cuentas Oficiales:</h3>
                     
                     <div class="bank-card">
                         <div>
-                            <strong style="color: #60a5fa;">Nequi / Daviplata</strong>
-                            <div style="color: var(--text-muted); font-size: 11px;">304 446 0524</div>
+                            <strong style="color: #818cf8; font-size: 13px;">Nequi / Daviplata</strong>
+                            <div style="color: var(--text-muted); font-size: 11px; margin-top: 1px;">304 446 0524</div>
                         </div>
                         <button class="copy-btn" onclick="navigator.clipboard.writeText('304 446 0524'); alert('Copiado');">Copiar</button>
                     </div>
 
                     <div class="bank-card">
                         <div>
-                            <strong style="color: #34d399;">Bancolombia Ahorros</strong>
-                            <div style="color: var(--text-muted); font-size: 11px;">781-712996-07</div>
+                            <strong style="color: #34d399; font-size: 13px;">Bancolombia Ahorros</strong>
+                            <div style="color: var(--text-muted); font-size: 11px; margin-top: 1px;">781-712996-07</div>
                         </div>
                         <button class="copy-btn" onclick="navigator.clipboard.writeText('78171299607'); alert('Copiado');">Copiar</button>
                     </div>
                 </div>
 
-                <form id="donation-form" style="border-top: 1px dashed var(--border-color); padding-top: 10px;">
-                    <h3 style="font-size: 12px; color: var(--text-main); margin-bottom: 8px;">Registrar Aporte</h3>
+                <form id="donation-form" style="border-top: 1px dashed var(--card-border); padding-top: 14px;">
+                    <h3 style="font-size: 13px; color: var(--text-main); margin-bottom: 12px; font-weight: 800;">Registrar Aporte</h3>
                     
                     <div class="form-group">
                         <label for="donor-name">Nombre o Seudónimo</label>
@@ -751,32 +1355,51 @@
 
                     <div class="form-group">
                         <label>Comprobante de Pago</label>
-                        <div style="display: flex; gap: 8px;">
-                            <label for="receipt-img-camera" class="file-upload-btn" style="flex: 1; background: #0f172a; border: 1px dashed var(--accent);">
-                                <i class="fa-solid fa-camera" style="color: var(--accent);"></i> Tomar Foto
+                        <div style="display: flex; gap: 10px;">
+                            <label for="receipt-img-camera" class="file-upload-btn" style="flex: 1; border: 1px dashed var(--accent);">
+                                <i class="fa-solid fa-camera" style="color: var(--accent);"></i> Cámara
                             </label>
                             <input type="file" id="receipt-img-camera" accept="image/*" capture="environment">
 
-                            <label for="receipt-img-gallery" class="file-upload-btn" style="flex: 1; background: #0f172a; border: 1px dashed var(--accent);">
+                            <label for="receipt-img-gallery" class="file-upload-btn" style="flex: 1; border: 1px dashed var(--accent);">
                                 <i class="fa-solid fa-images" style="color: var(--accent);"></i> Galería
                             </label>
                             <input type="file" id="receipt-img-gallery" accept="image/*">
                         </div>
                     </div>
 
-                    <div id="ocr-status" class="ocr-result-box"></div>
+                    <div id="ocr-status" style="display:none; padding: 12px; border-radius: 12px; border: 1px solid var(--accent); font-size: 11px; margin-bottom: 12px; background: rgba(16, 185, 129, 0.1);"></div>
 
-                    <button type="submit" id="submitDonationBtn" class="btn-primary" style="background-color: var(--accent);">
+                    <button type="submit" id="submitDonationBtn" class="btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 5px 0 var(--accent-shadow);">
                         <i class="fa-solid fa-shield-check"></i> Validar y Registrar
                     </button>
                 </form>
 
-                <div style="margin-top: 12px;">
-                    <h3 style="font-size: 12px; color: var(--text-main); margin-bottom: 6px;">Aportes Recientes</h3>
+                <div style="margin-top: 16px;">
+                    <h3 style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 0.6px; font-weight: 800;">Aportes Recientes</h3>
                     <div class="list-box" id="donations-history-list"></div>
                 </div>
             </section>
         </div>
+
+        <!-- TRANSPARENCIA Y COMPROBANTES DE GASTO -->
+        <section class="panel-card" style="border: 1px solid rgba(16, 185, 129, 0.35);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 12px;">
+                <h2 class="section-title" style="margin-bottom: 0;">
+                    <i class="fa-solid fa-file-invoice-dollar" style="color: var(--accent);"></i> Transparencia: Comprobantes de Gastos e Inversión
+                </h2>
+                <div style="display: flex; gap: 14px; font-size: 13px; font-weight: 800;">
+                    <span style="color: var(--danger);">Gastado: <strong id="summary-total-spent">$0</strong></span>
+                    <span style="color: var(--accent);">En Caja: <strong id="summary-balance">$0</strong></span>
+                </div>
+            </div>
+            
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5;">
+                Aquí la administración publica las facturas, recibos y fotos de los materiales comprados con las donaciones para garantizar el uso 100% transparente de los recursos.
+            </p>
+
+            <div id="public-expenses-container" class="dashboard-grid"></div>
+        </section>
 
         <section class="panel-card">
             <h2 class="section-title"><i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Reportes Activos</h2>
@@ -787,10 +1410,10 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <!-- FIREBASE v10 Y ESCÁNER DE VERIFICACIÓN CON IA -->
+    <!-- FIREBASE & LÓGICA DE APLICACIÓN -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCN1x56s7gOtV4MqIot9_hzv6yAM8tOMeg",
@@ -813,6 +1436,7 @@
         let activeAdmin = false;
         let reports = [];
         let donations = [];
+        let expenses = [];
         let activeCategoryFilter = "ALL";
 
         let rawOcrText = "";
@@ -823,16 +1447,18 @@
         let isOcrReady = false;
 
         let compressedReportImg = null;
+        let compressedExpenseImg = null;
 
-        // COMPRESIÓN DE IMÁGENES LIGERA
-        function compressImage(file, maxWidth = 350, quality = 0.5) {
-            return new Promise((resolve, reject) => {
+        function compressImage(file, maxWidth, quality) {
+            maxWidth = maxWidth || 350;
+            quality = quality || 0.5;
+            return new Promise(function(resolve, reject) {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = (event) => {
+                reader.onload = function(event) {
                     const img = new Image();
                     img.src = event.target.result;
-                    img.onload = () => {
+                    img.onload = function() {
                         const canvas = document.createElement('canvas');
                         let width = img.width;
                         let height = img.height;
@@ -848,89 +1474,185 @@
                         ctx.drawImage(img, 0, 0, width, height);
                         resolve(canvas.toDataURL('image/jpeg', quality));
                     };
-                    img.onerror = (err) => reject(err);
+                    img.onerror = function(err) { reject(err); };
                 };
-                reader.onerror = (err) => reject(err);
+                reader.onerror = function(err) { reject(err); };
             });
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
+        // DESCARGA DE EXCEL POR SECCIÓN
+        window.exportCategoryToExcel = function(category) {
+            const list = reports.filter(function(r) { return r.category === category; });
+            if (!list || list.length === 0) {
+                alert('No hay reportes registrados en la sección: ' + category);
+                return;
+            }
+            const dataToExport = list.map(function(r) {
+                return {
+                    'ID': r.id,
+                    'Título': r.title || '',
+                    'Categoría': r.category || '',
+                    'Descripción': r.desc || '',
+                    'Estado': r.status || 'Pendiente',
+                    'Asignación (%)': (r.pct || 0) + '%',
+                    'Latitud': r.lat || '',
+                    'Longitud': r.lng || '',
+                    'Fecha de Registro': r.date || ''
+                };
+            });
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Reportes");
+            const cleanCat = category.replace(/[^a-z0-9]/gi, '_');
+            XLSX.writeFile(workbook, "Civix_Reportes_" + cleanCat + ".xlsx");
+        };
+
+        // DESCARGA DE PDF POR SECCIÓN
+        window.exportCategoryToPDF = function(category) {
+            const list = reports.filter(function(r) { return r.category === category; });
+            if (!list || list.length === 0) {
+                alert('No hay reportes registrados en la sección: ' + category);
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(16);
+            doc.text("Civix Santa Marta - Informe Sección: " + category, 14, 20);
+            doc.setFontSize(10);
+            doc.text("Fecha de generación: " + new Date().toLocaleDateString('es-CO'), 14, 28);
+
+            const tableColumn = ["Título", "Estado", "% Asig.", "Fecha", "Ubicación"];
+            const tableRows = [];
+
+            list.forEach(function(r) {
+                const rowData = [
+                    r.title || '',
+                    r.status || 'Pendiente',
+                    (r.pct || 0) + '%',
+                    r.date || '',
+                    (r.lat ? Number(r.lat).toFixed(4) : '') + ', ' + (r.lng ? Number(r.lng).toFixed(4) : '')
+                ];
+                tableRows.push(rowData);
+            });
+
+            doc.autoTable({
+                startY: 35,
+                head: [tableColumn],
+                body: tableRows,
+                theme: 'grid',
+                headStyles: { fillColor: [79, 70, 229] }
+            });
+
+            const cleanCat = category.replace(/[^a-z0-9]/gi, '_');
+            doc.save("Civix_Reportes_" + cleanCat + ".pdf");
+        };
+
+        // DESCARGA MASIVA DE FOTOS POR SECCIÓN
+        window.downloadCategoryPhotos = function(category) {
+            const list = reports.filter(function(r) { return r.category === category && r.img; });
+            if (!list || list.length === 0) {
+                alert('No hay fotos disponibles para descargar en la sección: ' + category);
+                return;
+            }
+
+            list.forEach(function(r, index) {
+                setTimeout(function() {
+                    window.downloadPhoto(r.img, (r.title || 'Foto') + '_' + (index + 1));
+                }, index * 400);
+            });
+        };
+
+        window.downloadPhoto = function(imgSrc, title) {
+            if (!imgSrc) {
+                alert('Este reporte no contiene fotografía adjunta.');
+                return;
+            }
+            const link = document.createElement('a');
+            link.href = imgSrc;
+            link.download = 'Civix_' + (title || 'Foto').replace(/[^a-z0-9]/gi, '_') + '.jpg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        function startApp() {
+            if (localStorage.getItem('civix_terms_accepted') === 'true') {
+                const termsModal = document.getElementById('terms-modal');
+                if (termsModal) {
+                    termsModal.style.display = 'none';
+                }
+            }
+
             initIntroAnimation();
-            initTermsLogic();
             initMap();
             setupEventListeners();
             listenToFirebaseData();
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startApp);
+        } else {
+            startApp();
+        }
 
         function initIntroAnimation() {
             const step1 = document.getElementById('intro-step-1');
             const step2 = document.getElementById('intro-step-2');
-            const intro = document.getElementById('cinematic-intro');
-            const skipBtn = document.getElementById('skip-intro-btn');
 
-            function endIntro() {
-                intro.style.opacity = '0';
-                intro.style.visibility = 'hidden';
-                setTimeout(() => intro.remove(), 800);
-            }
-
-            if(skipBtn) skipBtn.addEventListener('click', endIntro);
-
-            setTimeout(() => {
-                if(step1) step1.style.opacity = '0';
-                if(step2) { step2.style.opacity = '1'; step2.style.pointerEvents = 'auto'; }
+            setTimeout(function() {
+                if (step1) step1.style.opacity = '0';
+                if (step2) step2.style.opacity = '1';
             }, 2500);
 
-            setTimeout(() => endIntro(), 5500);
-        }
-
-        function initTermsLogic() {
-            const checkbox = document.getElementById('accept-terms');
-            const enterBtn = document.getElementById('enter-app-btn');
-            const termsModal = document.getElementById('terms-modal');
-
-            checkbox.addEventListener('change', () => {
-                enterBtn.disabled = !checkbox.checked;
-                enterBtn.style.background = checkbox.checked ? 'var(--primary)' : '#334155';
-                enterBtn.style.color = checkbox.checked ? '#ffffff' : 'var(--text-muted)';
-            });
-
-            enterBtn.addEventListener('click', () => {
-                if (checkbox.checked) termsModal.style.display = 'none';
-            });
+            setTimeout(function() {
+                if (window.skipIntroNow) window.skipIntroNow();
+            }, 5500);
         }
 
         function initMap() {
-            map = L.map('map', { tap: true }).setView([11.2404, -74.1999], 13);
+            map = L.map('map', { 
+                tap: true,
+                touchZoom: true,
+                dragging: true 
+            }).setView([11.2404, -74.1999], 13);
+            
+            window.civixMap = map;
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19, attribution: '© OpenStreetMap'
+                maxZoom: 19, 
+                attribution: '© OpenStreetMap'
             }).addTo(map);
 
-            map.on('click', (e) => {
+            map.on('click', function(e) {
                 selectedCoords = e.latlng;
                 if (tempMarker) map.removeLayer(tempMarker);
 
                 tempMarker = L.marker([selectedCoords.lat, selectedCoords.lng]).addTo(map)
-                    .bindPopup("<b>Ubicación seleccionada en el mapa</b>").openPopup();
+                    .bindPopup("<b>Ubicación seleccionada</b>").openPopup();
 
                 const locStatus = document.getElementById('location-status');
-                locStatus.style.background = 'rgba(79, 70, 229, 0.2)';
-                locStatus.style.borderColor = 'var(--primary)';
-                locStatus.style.color = 'var(--text-main)';
-                locStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> Ubicación fijada: ${selectedCoords.lat.toFixed(4)}, ${selectedCoords.lng.toFixed(4)}`;
+                if (locStatus) {
+                    locStatus.style.background = 'rgba(99, 102, 241, 0.15)';
+                    locStatus.style.borderColor = 'var(--primary)';
+                    locStatus.style.color = '#a5b4fc';
+                    locStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> Ubicación fijada: ' + selectedCoords.lat.toFixed(4) + ', ' + selectedCoords.lng.toFixed(4);
+                }
             });
         }
 
         function requestDeviceLocation() {
             const locStatus = document.getElementById('location-status');
-            locStatus.style.background = 'rgba(245, 158, 11, 0.15)';
-            locStatus.style.borderColor = '#fbbf24';
-            locStatus.style.color = '#fbbf24';
-            locStatus.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Solicitando GPS del celular...';
+            if (locStatus) {
+                locStatus.style.background = 'rgba(245, 158, 11, 0.15)';
+                locStatus.style.borderColor = '#fbbf24';
+                locStatus.style.color = '#fbbf24';
+                locStatus.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Solicitando GPS del dispositivo...';
+            }
 
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(
-                    (position) => {
+                    function(position) {
                         selectedCoords = {
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
@@ -942,110 +1664,183 @@
                         tempMarker = L.marker([selectedCoords.lat, selectedCoords.lng]).addTo(map)
                             .bindPopup("<b>📍 Tu ubicación actual</b>").openPopup();
 
-                        locStatus.style.background = 'rgba(16, 185, 129, 0.2)';
-                        locStatus.style.borderColor = 'var(--accent)';
-                        locStatus.style.color = 'var(--accent)';
-                        locStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> <strong>GPS del dispositivo detectado:</strong> ${selectedCoords.lat.toFixed(4)}, ${selectedCoords.lng.toFixed(4)}`;
-                    },
-                    (error) => {
-                        let msg = "Asegúrate de activar la Ubicación / GPS en la barra de notificaciones.";
-                        if (error.code === error.PERMISSION_DENIED) {
-                            msg = "Permiso denegado. Concede permiso de ubicación o toca el mapa.";
+                        if (locStatus) {
+                            locStatus.style.background = 'rgba(16, 185, 129, 0.15)';
+                            locStatus.style.borderColor = 'var(--accent)';
+                            locStatus.style.color = 'var(--accent)';
+                            locStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> <strong>GPS detectado:</strong> ' + selectedCoords.lat.toFixed(4) + ', ' + selectedCoords.lng.toFixed(4);
                         }
-                        locStatus.style.background = 'rgba(239, 68, 68, 0.15)';
-                        locStatus.style.borderColor = 'var(--danger)';
-                        locStatus.style.color = 'var(--danger)';
-                        locStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${msg}`;
+                    },
+                    function(error) {
+                        let msg = "Asegúrate de activar la Ubicación / GPS.";
+                        if (error.code === error.PERMISSION_DENIED) {
+                            msg = "Permiso denegado. Concede permiso o toca el mapa.";
+                        }
+                        if (locStatus) {
+                            locStatus.style.background = 'rgba(239, 68, 68, 0.15)';
+                            locStatus.style.borderColor = 'var(--danger)';
+                            locStatus.style.color = 'var(--danger)';
+                            locStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + msg;
+                        }
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
-            } else {
+            } else if (locStatus) {
                 locStatus.style.background = 'rgba(239, 68, 68, 0.15)';
                 locStatus.style.borderColor = 'var(--danger)';
                 locStatus.style.color = 'var(--danger)';
-                locStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Tu navegador no admite GPS. Selecciona tocando el mapa.`;
+                locStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Tu navegador no admite GPS. Toca el mapa para seleccionar.';
             }
         }
 
         function listenToFirebaseData() {
-            onSnapshot(collection(db, "reports"), (snapshot) => {
+            onSnapshot(collection(db, "reports"), function(snapshot) {
                 reports = [];
-                snapshot.forEach((doc) => {
+                snapshot.forEach(function(doc) {
                     reports.push({ id: doc.id, ...doc.data() });
                 });
                 renderApp();
             });
 
-            onSnapshot(collection(db, "donations"), (snapshot) => {
+            onSnapshot(collection(db, "donations"), function(snapshot) {
                 donations = [];
-                snapshot.forEach((doc) => {
+                snapshot.forEach(function(doc) {
                     donations.push({ id: doc.id, ...doc.data() });
+                });
+                renderApp();
+            });
+
+            onSnapshot(collection(db, "expenses"), function(snapshot) {
+                expenses = [];
+                snapshot.forEach(function(doc) {
+                    expenses.push({ id: doc.id, ...doc.data() });
                 });
                 renderApp();
             });
         }
 
         function getTotalFunds() {
-            return donations.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+            return donations.reduce(function(sum, d) { return sum + (Number(d.amount) || 0); }, 0);
+        }
+
+        function getTotalSpent() {
+            return expenses.reduce(function(sum, e) { return sum + (Number(e.amount) || 0); }, 0);
         }
 
         function getFilteredReports() {
             if (activeCategoryFilter === "ALL") return reports;
-            return reports.filter(r => r.category === activeCategoryFilter);
+            return reports.filter(function(r) { return r.category === activeCategoryFilter; });
         }
 
         function renderApp() {
             renderMapMarkers();
             renderStatsAndFunds();
             renderDonationsHistory();
+            renderExpensesPublic();
             renderReportCards();
             if(activeAdmin) renderAdminPanel();
+            window.refreshMapSize();
         }
 
         function renderStatsAndFunds() {
             const total = getTotalFunds();
-            const formattedTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(total);
+            const spent = getTotalSpent();
+            const balance = total - spent;
 
-            document.getElementById('stat-active-reports').textContent = reports.filter(r => r.status !== 'Terminado').length;
-            document.getElementById('stat-total-funds').textContent = formattedTotal;
-            document.getElementById('highlight-total-funds').textContent = formattedTotal;
+            const formattedTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(total);
+            const formattedSpent = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(spent);
+            const formattedBalance = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(balance);
+
+            const statReports = document.getElementById('stat-active-reports');
+            const statFunds = document.getElementById('stat-total-funds');
+            const highlightFunds = document.getElementById('highlight-total-funds');
+            const summarySpent = document.getElementById('summary-total-spent');
+            const summaryBalance = document.getElementById('summary-balance');
+
+            if (statReports) statReports.textContent = reports.filter(function(r) { return r.status !== 'Terminado'; }).length;
+            if (statFunds) statFunds.textContent = formattedTotal;
+            if (highlightFunds) highlightFunds.textContent = formattedTotal;
+            if (summarySpent) summarySpent.textContent = formattedSpent;
+            if (summaryBalance) summaryBalance.textContent = formattedBalance;
+        }
+
+        window.openPhotoViewer = function(imgSrc) {
+            const viewer = document.getElementById('photo-viewer-modal');
+            const img = document.getElementById('photo-viewer-img');
+            if (viewer && img) {
+                img.src = imgSrc;
+                viewer.style.display = 'flex';
+            }
+        };
+
+        function renderExpensesPublic() {
+            const container = document.getElementById('public-expenses-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (expenses.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 12px; grid-column: 1/-1;">Aún no hay comprobantes de gastos registrados por la administración.</p>';
+                return;
+            }
+
+            expenses.slice().reverse().forEach(function(exp) {
+                const formattedAmount = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(exp.amount);
+
+                const card = document.createElement('div');
+                card.className = 'expense-card-item';
+                card.innerHTML = 
+                    '<div class="expense-header">' +
+                        '<span class="expense-title">' + exp.title + '</span>' +
+                        '<span class="expense-amount">-' + formattedAmount + '</span>' +
+                    '</div>' +
+                    '<p style="font-size: 11px; color: var(--text-muted); line-height: 1.45;">' + exp.desc + '</p>' +
+                    (exp.img ? '<img src="' + exp.img + '" class="expense-img-thumb" onclick="window.openPhotoViewer(\'' + exp.img + '\')" title="Toca para ampliar comprobante">' : '') +
+                    '<div style="display: flex; justify-content: space-between; font-size: 10px; color: #64748b; border-top: 1px dashed var(--card-border); padding-top: 8px;">' +
+                        '<span>Sección: <strong>' + (exp.category || 'General') + '</strong></span>' +
+                        '<span>📅 ' + (exp.date || '') + '</span>' +
+                    '</div>';
+                container.appendChild(card);
+            });
         }
 
         function renderMapMarkers() {
-            map.eachLayer((layer) => {
+            if (!map) return;
+            map.eachLayer(function(layer) {
                 if (layer instanceof L.Marker && layer !== tempMarker) {
-                    map.removeLayer(layer);
+                    try { map.removeLayer(layer); } catch(e) {}
                 }
             });
 
-            const totalFunds = getTotalFunds();
             const filtered = getFilteredReports();
 
-            filtered.forEach(report => {
-                const assignedFund = (totalFunds * ((report.pct || 0) / 100));
-                const formattedAssigned = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(assignedFund);
+            filtered.forEach(function(report) {
+                try {
+                    let badgeColor = '#fbbf24';
+                    if(report.status === 'Proceso') badgeColor = '#818cf8';
+                    if(report.status === 'Terminado') badgeColor = '#34d399';
 
-                let badgeColor = '#fbbf24';
-                if(report.status === 'Proceso') badgeColor = '#60a5fa';
-                if(report.status === 'Terminado') badgeColor = '#34d399';
+                    const popupContent = '<div style="font-family: sans-serif; color: #0f172a; max-width: 180px;">' +
+                        '<h4 style="margin: 0 0 4px 0; font-size: 13px;">' + (report.title || 'Sin título') + '</h4>' +
+                        '<div style="font-size: 10px; color: #64748b; margin-bottom: 4px;">Sección: <strong>' + (report.category || 'General') + '</strong></div>' +
+                        '<span style="background: ' + badgeColor + '; color: #000; font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 4px;">' + (report.status || 'Pendiente') + '</span>' +
+                        '<p style="font-size: 10px; margin: 6px 0; color: #475569;">' + (report.desc || '') + '</p>' +
+                        '</div>';
 
-                const popupContent = `
-                    <div style="font-family: sans-serif; color: #0f172a; max-width: 180px;">
-                        <h4 style="margin: 0 0 4px 0; font-size: 13px;">${report.title}</h4>
-                        <div style="font-size: 10px; color: #64748b; margin-bottom: 4px;">Sección: <strong>${report.category}</strong></div>
-                        <span style="background: ${badgeColor}; color: #000; font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 4px;">${report.status || 'Pendiente'}</span>
-                        <p style="font-size: 10px; margin: 6px 0; color: #475569;">${report.desc}</p>
-                    </div>
-                `;
+                    const lat = Number(report.lat);
+                    const lng = Number(report.lng);
 
-                if(report.lat && report.lng) {
-                    L.marker([report.lat, report.lng]).addTo(map).bindPopup(popupContent);
+                    if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                        L.marker([lat, lng]).addTo(map).bindPopup(popupContent);
+                    }
+                } catch(err) {
+                    console.error("Error al renderizar marcador:", err);
                 }
             });
         }
 
         function renderReportCards() {
             const container = document.getElementById('reports-cards-container');
+            if (!container) return;
             container.innerHTML = '';
 
             const totalFunds = getTotalFunds();
@@ -1056,7 +1851,7 @@
                 return;
             }
 
-            filtered.forEach(report => {
+            filtered.forEach(function(report) {
                 const assignedFund = (totalFunds * ((report.pct || 0) / 100));
                 const formattedAssigned = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(assignedFund);
 
@@ -1065,30 +1860,32 @@
                 if (report.status === 'Proceso') { statusClass = 'status-process'; statusText = 'En Proceso'; }
                 if (report.status === 'Terminado') { statusClass = 'status-completed'; statusText = 'Terminado'; }
 
+                const imgTag = report.img ? '<img src="' + report.img + '" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: 10px; cursor: pointer;" onclick="window.openPhotoViewer(\'' + report.img + '\')">' : '';
+
                 const card = document.createElement('div');
                 card.className = 'report-card-item';
-                card.innerHTML = `
-                    <div class="report-card-header">
-                        <h3 class="report-card-title">${report.title}</h3>
-                        <span class="status-badge ${statusClass}">${statusText}</span>
-                    </div>
-                    <p class="report-card-desc">${report.desc}</p>
-                    ${report.img ? `<img src="${report.img}" style="width: 100%; max-height: 140px; object-fit: cover; border-radius: 6px; margin: 4px 0;">` : ''}
-                    <div style="background: #1e293b; padding: 8px; border-radius: 6px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color);">
-                        <span style="color: var(--text-muted);">Asignación: <strong>${report.pct || 0}%</strong></span>
-                        <span style="color: var(--accent); font-weight: bold;">${formattedAssigned}</span>
-                    </div>
-                    <div class="report-card-footer">
-                        <span class="report-category-tag">${report.category}</span>
-                        <span><i class="fa-regular fa-calendar"></i> ${report.date || ''}</span>
-                    </div>
-                `;
+                card.innerHTML = 
+                    '<div class="report-card-header">' +
+                        '<h3 class="report-card-title">' + report.title + '</h3>' +
+                        '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
+                    '</div>' +
+                    '<p class="report-card-desc">' + report.desc + '</p>' +
+                    imgTag +
+                    '<div style="background: rgba(9, 13, 22, 0.65); padding: 12px; border-radius: 10px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--card-border);">' +
+                        '<span style="color: var(--text-muted);">Asignación: <strong>' + (report.pct || 0) + '%</strong></span>' +
+                        '<span style="color: var(--accent); font-weight: 800; font-size: 13px;">' + formattedAssigned + '</span>' +
+                    '</div>' +
+                    '<div class="report-card-footer">' +
+                        '<span class="report-category-tag">' + report.category + '</span>' +
+                        '<span><i class="fa-regular fa-calendar"></i> ' + (report.date || '') + '</span>' +
+                    '</div>';
                 container.appendChild(card);
             });
         }
 
         function renderDonationsHistory() {
             const list = document.getElementById('donations-history-list');
+            if (!list) return;
             list.innerHTML = '';
 
             if (donations.length === 0) {
@@ -1096,30 +1893,28 @@
                 return;
             }
 
-            donations.slice().reverse().forEach(d => {
+            donations.slice().reverse().forEach(function(d) {
                 const formattedAmount = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(d.amount);
                 const item = document.createElement('div');
                 item.className = 'bank-card';
-                item.innerHTML = `
-                    <div>
-                        <strong style="color: var(--text-main); font-size: 12px;">${d.donor}</strong>
-                        <div style="color: var(--accent); font-size: 10px;"><i class="fa-solid fa-circle-check"></i> Ref: ${d.refCode || 'Verificado'}</div>
-                    </div>
-                    <span style="color: var(--accent); font-weight: bold; font-size: 12px;">+ ${formattedAmount}</span>
-                `;
+                item.innerHTML = 
+                    '<div>' +
+                        '<strong style="color: var(--text-main); font-size: 12px;">' + d.donor + '</strong>' +
+                        '<div style="color: var(--accent); font-size: 10px; margin-top: 2px;"><i class="fa-solid fa-circle-check"></i> Ref: ' + (d.refCode || 'Verificado') + '</div>' +
+                    '</div>' +
+                    '<span style="color: var(--accent); font-weight: 900; font-size: 13px;">+ ' + formattedAmount + '</span>';
                 list.appendChild(item);
             });
         }
 
         function setupEventListeners() {
-            document.getElementById('btn-detect-gps').addEventListener('click', () => {
-                requestDeviceLocation();
-            });
+            const btnGps = document.getElementById('btn-detect-gps');
+            if (btnGps) btnGps.addEventListener('click', function() { requestDeviceLocation(); });
 
             const filterTabs = document.querySelectorAll('#category-filter-tabs .tab-btn');
-            filterTabs.forEach(tab => {
-                tab.addEventListener('click', (e) => {
-                    filterTabs.forEach(t => t.classList.remove('active'));
+            filterTabs.forEach(function(tab) {
+                tab.addEventListener('click', function(e) {
+                    filterTabs.forEach(function(t) { t.classList.remove('active'); });
                     const target = e.currentTarget;
                     target.classList.add('active');
                     activeCategoryFilter = target.getAttribute('data-category');
@@ -1131,54 +1926,108 @@
             const preview = document.getElementById('img-preview');
             const locStatus = document.getElementById('location-status');
 
-            // CÁMARA Y GALERÍA PARA REPORTES DE INCIDENTES
-            const handleReportImageFile = async (file) => {
+            const handleReportImageFile = async function(file) {
                 if (!file) return;
                 try {
                     compressedReportImg = await compressImage(file, 350, 0.5);
-                    preview.src = compressedReportImg;
-                    previewBox.style.display = 'block';
+                    if (preview) preview.src = compressedReportImg;
+                    if (previewBox) previewBox.style.display = 'block';
 
-                    const tags = await ExifReader.load(file);
-                    if (tags && tags.GPSLatitude && tags.GPSLongitude) {
-                        const lat = tags.GPSLatitude.description;
-                        const lng = tags.GPSLongitude.description;
+                    if (window.ExifReader) {
+                        const tags = await ExifReader.load(file);
+                        if (tags && tags.GPSLatitude && tags.GPSLongitude) {
+                            const lat = tags.GPSLatitude.description;
+                            const lng = tags.GPSLongitude.description;
 
-                        selectedCoords = { lat: Number(lat), lng: Number(lng) };
+                            selectedCoords = { lat: Number(lat), lng: Number(lng) };
 
-                        map.setView([selectedCoords.lat, selectedCoords.lng], 16);
-                        if (tempMarker) map.removeLayer(tempMarker);
+                            map.setView([selectedCoords.lat, selectedCoords.lng], 16);
+                            if (tempMarker) map.removeLayer(tempMarker);
 
-                        tempMarker = L.marker([selectedCoords.lat, selectedCoords.lng]).addTo(map)
-                            .bindPopup("<b>📍 Ubicación extraída de la foto</b>").openPopup();
+                            tempMarker = L.marker([selectedCoords.lat, selectedCoords.lng]).addTo(map)
+                                .bindPopup("<b>📍 Ubicación extraída de la foto</b>").openPopup();
 
-                        locStatus.style.background = 'rgba(16, 185, 129, 0.2)';
-                        locStatus.style.borderColor = 'var(--accent)';
-                        locStatus.style.color = 'var(--accent)';
-                        locStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> <strong>GPS de la foto detectado:</strong> ${selectedCoords.lat.toFixed(4)}, ${selectedCoords.lng.toFixed(4)}`;
-                    } else {
-                        requestDeviceLocation();
+                            if (locStatus) {
+                                locStatus.style.background = 'rgba(16, 185, 129, 0.15)';
+                                locStatus.style.borderColor = 'var(--accent)';
+                                locStatus.style.color = 'var(--accent)';
+                                locStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> <strong>GPS de la foto detectado:</strong> ' + selectedCoords.lat.toFixed(4) + ', ' + selectedCoords.lng.toFixed(4);
+                            }
+                            return;
+                        }
                     }
+                    requestDeviceLocation();
                 } catch (err) {
                     requestDeviceLocation();
                 }
             };
 
-            document.getElementById('report-img-camera').addEventListener('change', (e) => {
-                if (e.target.files && e.target.files[0]) handleReportImageFile(e.target.files[0]);
-            });
+            const reportCam = document.getElementById('report-img-camera');
+            const reportGal = document.getElementById('report-img-gallery');
+            if (reportCam) reportCam.addEventListener('change', function(e) { if (e.target.files && e.target.files[0]) handleReportImageFile(e.target.files[0]); });
+            if (reportGal) reportGal.addEventListener('change', function(e) { if (e.target.files && e.target.files[0]) handleReportImageFile(e.target.files[0]); });
 
-            document.getElementById('report-img-gallery').addEventListener('change', (e) => {
-                if (e.target.files && e.target.files[0]) handleReportImageFile(e.target.files[0]);
-            });
+            const expensePrevBox = document.getElementById('expense-preview-box');
+            const expensePrevImg = document.getElementById('expense-preview-img');
 
-            // AUDITORÍA IA DE COMPROBANTES CON LIMPIEZA TOTAL DE MEMORIA
+            const handleExpenseImageFile = async function(file) {
+                if (!file) return;
+                try {
+                    compressedExpenseImg = await compressImage(file, 600, 0.6);
+                    if (expensePrevImg) expensePrevImg.src = compressedExpenseImg;
+                    if (expensePrevBox) expensePrevBox.style.display = 'block';
+                } catch(e) { alert('Error al cargar la imagen del comprobante'); }
+            };
+
+            const expCam = document.getElementById('expense-img-cam');
+            const expGal = document.getElementById('expense-img-gal');
+            if (expCam) expCam.addEventListener('change', function(e) { if (e.target.files && e.target.files[0]) handleExpenseImageFile(e.target.files[0]); });
+            if (expGal) expGal.addEventListener('change', function(e) { if (e.target.files && e.target.files[0]) handleExpenseImageFile(e.target.files[0]); });
+
+            const adminExpenseForm = document.getElementById('admin-expense-form');
+            if (adminExpenseForm) {
+                adminExpenseForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const title = document.getElementById('expense-title').value.trim();
+                    const amount = Number(document.getElementById('expense-amount').value);
+                    const category = document.getElementById('expense-category').value;
+                    const desc = document.getElementById('expense-desc').value.trim();
+
+                    if (!amount || amount <= 0) {
+                        alert('Ingresa un monto válido');
+                        return;
+                    }
+
+                    if (!compressedExpenseImg) {
+                        alert('Atención: Adjunta la foto del comprobante o factura física.');
+                        return;
+                    }
+
+                    try {
+                        await addDoc(collection(db, "expenses"), {
+                            title: title,
+                            amount: amount,
+                            category: category,
+                            desc: desc,
+                            img: compressedExpenseImg,
+                            date: new Date().toISOString().split('T')[0]
+                        });
+
+                        adminExpenseForm.reset();
+                        if (expensePrevBox) expensePrevBox.style.display = 'none';
+                        compressedExpenseImg = null;
+                        alert('¡Comprobante de gasto publicado con éxito!');
+                    } catch(err) {
+                        alert('Error al guardar comprobante: ' + err.message);
+                    }
+                });
+            }
+
             const ocrStatusBox = document.getElementById('ocr-status');
 
-            const handleReceiptImageFile = async (file) => {
+            const handleReceiptImageFile = async function(file) {
                 if (!file) return;
 
-                // 0. RESET COMPLETO DE VARIABLES
                 rawOcrText = "";
                 scannedRefCode = null;
                 scannedAmounts = [];
@@ -1186,10 +2035,12 @@
                 scannedDateObj = null;
                 isOcrReady = false;
 
-                ocrStatusBox.style.display = 'block';
-                ocrStatusBox.style.borderColor = '#fbbf24';
-                ocrStatusBox.style.color = '#fbbf24';
-                ocrStatusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Auditando referencia y fecha del comprobante...';
+                if (ocrStatusBox) {
+                    ocrStatusBox.style.display = 'block';
+                    ocrStatusBox.style.borderColor = '#fbbf24';
+                    ocrStatusBox.style.color = '#fbbf24';
+                    ocrStatusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Auditando comprobante con IA...';
+                }
 
                 try {
                     const optimizedReceipt = await compressImage(file, 800, 0.7);
@@ -1197,26 +2048,21 @@
                     const result = await Tesseract.recognize(optimizedReceipt, 'spa');
                     rawOcrText = result.data.text.toLowerCase();
 
-                    // 1. Detección de Montos
                     const matches = result.data.text.match(/(?:\$|\b)\s*([0-9]{1,3}(?:[.,][0-9]{3})+|[0-9]{4,8})/g);
                     scannedAmounts = [];
                     if (matches) {
-                        matches.forEach(m => {
+                        matches.forEach(function(m) {
                             const cleanNum = parseInt(m.replace(/[^0-9]/g, ''), 10);
                             if (cleanNum >= 1000 && cleanNum <= 10000000) scannedAmounts.push(cleanNum);
                         });
                     }
 
-                    // 2. Extraer Código de Referencia Único evitando tomar números de cuenta
                     let candidateRef = null;
-
                     const labelMatch = result.data.text.match(/(?:ref(?:erencia)?|transacci[oó]n|comprobante|aprobaci[oó]n|nro|n[uú]mero)[\s:#\.-]*([a-z0-9]{4,15})/i);
                     if (labelMatch) {
                         const val = labelMatch[1].toUpperCase();
                         const digitsOnly = val.replace(/\D/g, '');
-                        if (!CLEAN_OFFICIAL_ACCOUNTS.includes(digitsOnly)) {
-                            candidateRef = val;
-                        }
+                        if (!CLEAN_OFFICIAL_ACCOUNTS.includes(digitsOnly)) candidateRef = val;
                     }
 
                     if (!candidateRef) {
@@ -1228,10 +2074,7 @@
                         const allCodes = result.data.text.match(/\b[A-Z0-9]{6,12}\b/gi) || [];
                         for (let code of allCodes) {
                             const digitsOnly = code.replace(/\D/g, '');
-                            if (!CLEAN_OFFICIAL_ACCOUNTS.includes(digitsOnly) && 
-                                !digitsOnly.startsWith("2026") && 
-                                !digitsOnly.startsWith("304") && 
-                                digitsOnly.length >= 6) {
+                            if (!CLEAN_OFFICIAL_ACCOUNTS.includes(digitsOnly) && !digitsOnly.startsWith("2026") && !digitsOnly.startsWith("304") && digitsOnly.length >= 6) {
                                 candidateRef = code.toUpperCase();
                                 break;
                             }
@@ -1240,11 +2083,9 @@
 
                     scannedRefCode = candidateRef;
 
-                    // 3. Detección de Fecha de la Transacción
                     const monthsMap = {
                         'ene':0, 'feb':1, 'mar':2, 'abr':3, 'may':4, 'jun':5, 'jul':6, 'ago':7, 'sep':8, 'oct':9, 'nov':10, 'dic':11,
-                        'jan':0, 'apr':3, 'aug':7, 'dec':11,
-                        '01':0, '02':1, '03':2, '04':3, '05':4, '06':5, '07':6, '08':7, '09':8, '10':9, '11':10, '12':11
+                        'jan':0, 'apr':3, 'aug':7, 'dec':11, '01':0, '02':1, '03':2, '04':3, '05':4, '06':5, '07':6, '08':7, '09':8, '10':9, '11':10, '12':11
                     };
 
                     const dateRegex = /\b([0-3]?[0-9])\s*[\/\-\.\s]\s*(?:de\s+)?(0?[1-9]|1[0-2]|ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)[a-z]*\s*[\/\-\.\s]\s*(?:de\s+)?(20\d{2}|\d{2})\b/i;
@@ -1263,141 +2104,147 @@
 
                     isOcrReady = true;
 
-                    let statusText = `<i class="fa-solid fa-circle-check"></i> Comprobante procesado.`;
-                    if (scannedRefCode) statusText += ` Ref: <strong>${scannedRefCode}</strong>.`;
-                    if (scannedDateStr) statusText += ` Fecha: <strong>${scannedDateStr}</strong>.`;
+                    let statusText = '<i class="fa-solid fa-circle-check"></i> Comprobante procesado.';
+                    if (scannedRefCode) statusText += ' Ref: <strong>' + scannedRefCode + '</strong>.';
+                    if (scannedDateStr) statusText += ' Fecha: <strong>' + scannedDateStr + '</strong>.';
 
-                    ocrStatusBox.style.borderColor = 'var(--accent)';
-                    ocrStatusBox.style.color = 'var(--accent)';
-                    ocrStatusBox.innerHTML = statusText;
+                    if (ocrStatusBox) {
+                        ocrStatusBox.style.borderColor = 'var(--accent)';
+                        ocrStatusBox.style.color = 'var(--accent)';
+                        ocrStatusBox.innerHTML = statusText;
+                    }
                 } catch (err) {
                     isOcrReady = true;
-                    ocrStatusBox.style.borderColor = '#fbbf24';
-                    ocrStatusBox.style.color = '#fbbf24';
-                    ocrStatusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Foto cargada. La IA evaluará los campos al presionar Validar.`;
+                    if (ocrStatusBox) {
+                        ocrStatusBox.style.borderColor = '#fbbf24';
+                        ocrStatusBox.style.color = '#fbbf24';
+                        ocrStatusBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Foto cargada. La IA evaluará los campos al presionar Validar.';
+                    }
                 }
             };
 
-            document.getElementById('receipt-img-camera').addEventListener('change', (e) => {
-                if (e.target.files && e.target.files[0]) handleReceiptImageFile(e.target.files[0]);
-            });
-
-            document.getElementById('receipt-img-gallery').addEventListener('change', (e) => {
-                if (e.target.files && e.target.files[0]) handleReceiptImageFile(e.target.files[0]);
-            });
+            const receiptCam = document.getElementById('receipt-img-camera');
+            const receiptGal = document.getElementById('receipt-img-gallery');
+            if (receiptCam) receiptCam.addEventListener('change', function(e) { if (e.target.files && e.target.files[0]) handleReceiptImageFile(e.target.files[0]); });
+            if (receiptGal) receiptGal.addEventListener('change', function(e) { if (e.target.files && e.target.files[0]) handleReceiptImageFile(e.target.files[0]); });
 
             const reportForm = document.getElementById('report-form');
-            reportForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!selectedCoords) {
-                    alert('Atención: Primero debes obtener la ubicación con el botón "Detectar Mi Ubicación" o tocando en el mapa.');
-                    return;
-                }
+            if (reportForm) {
+                reportForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    if (!selectedCoords) {
+                        alert('Atención: Obtén la ubicación con "Detectar Mi Ubicación" o tocando en el mapa.');
+                        return;
+                    }
 
-                const title = document.getElementById('report-title').value.trim();
-                const category = document.getElementById('report-category').value;
-                const desc = document.getElementById('report-desc').value.trim();
+                    const title = document.getElementById('report-title').value.trim();
+                    const category = document.getElementById('report-category').value;
+                    const desc = document.getElementById('report-desc').value.trim();
 
-                const defaultPct = reports.length === 0 ? 100 : Math.floor(100 / (reports.length + 1));
+                    const defaultPct = reports.length === 0 ? 100 : Math.floor(100 / (reports.length + 1));
 
-                try {
-                    await addDoc(collection(db, "reports"), {
-                        title, category, desc,
-                        lat: selectedCoords.lat, lng: selectedCoords.lng,
-                        status: 'Pendiente', pct: defaultPct, 
-                        img: compressedReportImg,
-                        date: new Date().toISOString().split('T')[0]
-                    });
+                    try {
+                        await addDoc(collection(db, "reports"), {
+                            title: title, category: category, desc: desc,
+                            lat: selectedCoords.lat, lng: selectedCoords.lng,
+                            status: 'Pendiente', pct: defaultPct, 
+                            img: compressedReportImg,
+                            date: new Date().toISOString().split('T')[0]
+                        });
 
-                    reportForm.reset();
-                    previewBox.style.display = 'none';
-                    compressedReportImg = null;
-                    selectedCoords = null;
-                    if (tempMarker) map.removeLayer(tempMarker);
-                    locStatus.style.background = 'rgba(16, 185, 129, 0.1)';
-                    locStatus.style.borderColor = 'var(--accent)';
-                    locStatus.style.color = 'var(--text-main)';
-                    locStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Usa el botón de abajo o haz clic en el mapa para fijar tu ubicación.';
+                        reportForm.reset();
+                        if (previewBox) previewBox.style.display = 'none';
+                        compressedReportImg = null;
+                        selectedCoords = null;
+                        if (tempMarker) map.removeLayer(tempMarker);
+                        if (locStatus) {
+                            locStatus.style.background = 'rgba(16, 185, 129, 0.1)';
+                            locStatus.style.borderColor = 'rgba(16, 185, 129, 0.45)';
+                            locStatus.style.color = 'var(--accent)';
+                            locStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Usa el botón de abajo o toca el mapa para fijar tu ubicación.';
+                        }
 
-                    alert('¡Reporte publicado con éxito en la categoría ' + category + '!');
-                } catch (error) {
-                    alert('Error al guardar el reporte: ' + error.message);
-                }
-            });
+                        alert('¡Reporte publicado con éxito!');
+                    } catch (error) {
+                        alert('Error al guardar reporte: ' + error.message);
+                    }
+                });
+            }
 
-            // FORMULARIO DE DONACIÓN CON AUDITORÍA
             const donationForm = document.getElementById('donation-form');
-            donationForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const donorInput = document.getElementById('donor-name').value.trim();
-                const declaredAmount = Number(document.getElementById('donation-amount').value);
+            if (donationForm) {
+                donationForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const donorInput = document.getElementById('donor-name').value.trim();
+                    const declaredAmount = Number(document.getElementById('donation-amount').value);
 
-                if (!declaredAmount || declaredAmount <= 0) {
-                    alert('Ingresa un monto válido.');
-                    return;
-                }
-
-                if (!isOcrReady) {
-                    alert('Por favor adjunta la foto o captura del comprobante.');
-                    return;
-                }
-
-                const cleanOcrText = rawOcrText.replace(/[\s\-_]/g, '').replace(/o/g, '0').replace(/l|i/g, '1');
-                const hasOfficialAccount = CLEAN_OFFICIAL_ACCOUNTS.some(acc => cleanOcrText.includes(acc));
-
-                if (rawOcrText !== "" && !hasOfficialAccount) {
-                    alert('❌ COMPROBANTE RECHAZADO: No se detectó el número de cuenta oficial (304 446 0524 o 781-712996-07) en la imagen.');
-                    return;
-                }
-
-                if (scannedRefCode) {
-                    const isDuplicateRef = donations.some(d => d.refCode && d.refCode.toUpperCase() === scannedRefCode.toUpperCase());
-                    if (isDuplicateRef) {
-                        alert(`❌ COMPROBANTE REPETIDO: El número de transacción (${scannedRefCode}) ya fue registrado en un aporte anterior.`);
+                    if (!declaredAmount || declaredAmount <= 0) {
+                        alert('Ingresa un monto válido.');
                         return;
                     }
-                }
 
-                if (scannedAmounts.length > 0) {
-                    const amountMatches = scannedAmounts.some(amt => Math.abs(amt - declaredAmount) <= 500);
-                    if (!amountMatches) {
-                        alert(`❌ COMPROBANTE RECHAZADO: El monto ingresado ($${declaredAmount.toLocaleString()}) no coincide con el valor leído en la imagen por la IA.`);
+                    if (!isOcrReady) {
+                        alert('Por favor adjunta la foto o captura del comprobante.');
                         return;
                     }
-                }
 
-                if (rawOcrText !== "" && scannedDateObj) {
-                    const today = new Date();
-                    const diffTime = today.getTime() - scannedDateObj.getTime();
-                    const diffDays = diffTime / (1000 * 3600 * 24);
+                    const cleanOcrText = rawOcrText.replace(/[\s\-_]/g, '').replace(/o/g, '0').replace(/l|i/g, '1');
+                    const hasOfficialAccount = CLEAN_OFFICIAL_ACCOUNTS.some(function(acc) { return cleanOcrText.includes(acc); });
 
-                    if (diffDays < -1 || diffDays > 7) {
-                        alert(`❌ COMPROBANTE EXPIRADO: La fecha detectada en la factura (${scannedDateStr}) no es reciente o no corresponde a esta semana.`);
+                    if (rawOcrText !== "" && !hasOfficialAccount) {
+                        alert('❌ COMPROBANTE RECHAZADO: No se detectó el número de cuenta oficial (304 446 0524 o 781-712996-07) en la imagen.');
                         return;
                     }
-                }
 
-                const finalRefCode = scannedRefCode || ("REF-" + Math.floor(100000 + Math.random() * 900000));
+                    if (scannedRefCode) {
+                        const isDuplicateRef = donations.some(function(d) { return d.refCode && d.refCode.toUpperCase() === scannedRefCode.toUpperCase(); });
+                        if (isDuplicateRef) {
+                            alert('❌ COMPROBANTE REPETIDO: El número de transacción (' + scannedRefCode + ') ya fue registrado previamente.');
+                            return;
+                        }
+                    }
 
-                try {
-                    await addDoc(collection(db, "donations"), {
-                        donor: donorInput,
-                        amount: declaredAmount,
-                        refCode: finalRefCode,
-                        date: new Date().toISOString().split('T')[0]
-                    });
+                    if (scannedAmounts.length > 0) {
+                        const amountMatches = scannedAmounts.some(function(amt) { return Math.abs(amt - declaredAmount) <= 500; });
+                        if (!amountMatches) {
+                            alert('❌ COMPROBANTE RECHAZADO: El monto ingresado ($' + declaredAmount.toLocaleString() + ') no coincide con el valor leído en la imagen.');
+                            return;
+                        }
+                    }
 
-                    donationForm.reset();
-                    ocrStatusBox.style.display = 'none';
-                    scannedRefCode = null;
-                    scannedDateStr = null;
-                    scannedDateObj = null;
-                    isOcrReady = false;
-                    alert('¡Aporte auditado, validado y registrado con éxito!');
-                } catch (error) {
-                    alert('Error: ' + error.message);
-                }
-            });
+                    if (rawOcrText !== "" && scannedDateObj) {
+                        const today = new Date();
+                        const diffTime = today.getTime() - scannedDateObj.getTime();
+                        const diffDays = diffTime / (1000 * 3600 * 24);
+
+                        if (diffDays < -1 || diffDays > 7) {
+                            alert('❌ COMPROBANTE EXPIRADO: La fecha del comprobante no corresponde a esta semana.');
+                            return;
+                        }
+                    }
+
+                    const finalRefCode = scannedRefCode || ("REF-" + Math.floor(100000 + Math.random() * 900000));
+
+                    try {
+                        await addDoc(collection(db, "donations"), {
+                            donor: donorInput,
+                            amount: declaredAmount,
+                            refCode: finalRefCode,
+                            date: new Date().toISOString().split('T')[0]
+                        });
+
+                        donationForm.reset();
+                        if (ocrStatusBox) ocrStatusBox.style.display = 'none';
+                        scannedRefCode = null;
+                        scannedDateStr = null;
+                        scannedDateObj = null;
+                        isOcrReady = false;
+                        alert('¡Aporte auditado, validado y registrado con éxito!');
+                    } catch (error) {
+                        alert('Error: ' + error.message);
+                    }
+                });
+            }
 
             const openAdminBtn = document.getElementById('openAdminBtn');
             const adminModal = document.getElementById('admin-modal');
@@ -1406,299 +2253,243 @@
             const adminDashboardModal = document.getElementById('admin-dashboard-modal');
             const closeAdminDashboardBtn = document.getElementById('closeAdminDashboardBtn');
 
-            openAdminBtn.addEventListener('click', () => {
-                if (activeAdmin) adminDashboardModal.style.display = 'flex';
-                else adminModal.style.display = 'flex';
-            });
+            if (openAdminBtn) {
+                openAdminBtn.addEventListener('click', function() {
+                    if (activeAdmin && adminDashboardModal) adminDashboardModal.style.display = 'flex';
+                    else if (adminModal) adminModal.style.display = 'flex';
+                });
+            }
 
-            closeAdminModalBtn.addEventListener('click', () => adminModal.style.display = 'none');
-            closeAdminDashboardBtn.addEventListener('click', () => adminDashboardModal.style.display = 'none');
+            if (closeAdminModalBtn) closeAdminModalBtn.addEventListener('click', function() { if (adminModal) adminModal.style.display = 'none'; });
+            if (closeAdminDashboardBtn) closeAdminDashboardBtn.addEventListener('click', function() { if (adminDashboardModal) adminDashboardModal.style.display = 'none'; });
 
-            submitAdminLoginBtn.addEventListener('click', () => {
-                const pass = document.getElementById('admin-password').value;
-                if (pass === 'civix2026*') {
-                    activeAdmin = true;
-                    adminModal.style.display = 'none';
-                    document.getElementById('admin-password').value = '';
-                    adminDashboardModal.style.display = 'flex';
-                    renderAdminPanel();
-                } else {
-                    alert('Contraseña incorrecta');
-                }
-            });
+            if (submitAdminLoginBtn) {
+                submitAdminLoginBtn.addEventListener('click', function() {
+                    const passInput = document.getElementById('admin-password');
+                    const pass = passInput ? passInput.value : '';
+                    if (pass === 'civix2026*') {
+                        activeAdmin = true;
+                        if (adminModal) adminModal.style.display = 'none';
+                        if (passInput) passInput.value = '';
+                        if (adminDashboardModal) adminDashboardModal.style.display = 'flex';
+                        renderAdminPanel();
+                    } else {
+                        alert('Contraseña incorrecta');
+                    }
+                });
+            }
 
-            document.getElementById('savePctBtn').addEventListener('click', async () => {
-                const inputs = document.querySelectorAll('.admin-pct-input');
-                let total = 0;
-                inputs.forEach(i => total += (Number(i.value) || 0));
+            const savePctBtn = document.getElementById('savePctBtn');
+            if (savePctBtn) {
+                savePctBtn.addEventListener('click', async function() {
+                    const inputs = document.querySelectorAll('.admin-pct-input');
+                    let total = 0;
+                    inputs.forEach(function(i) { total += (Number(i.value) || 0); });
 
-                if (total !== 100 && reports.length > 0) {
-                    alert(`La suma total debe ser 100%. Suma actual: ${total}%`);
-                    return;
-                }
+                    if (total !== 100 && reports.length > 0) {
+                        alert('La suma total debe ser 100%. Suma actual: ' + total + '%');
+                        return;
+                    }
 
-                for (let input of inputs) {
-                    const docId = input.getAttribute('data-id');
-                    const val = Number(input.value) || 0;
-                    await updateDoc(doc(db, "reports", docId), { pct: val });
-                }
+                    for (let input of inputs) {
+                        const docId = input.getAttribute('data-id');
+                        const val = Number(input.value) || 0;
+                        await updateDoc(doc(db, "reports", docId), { pct: val });
+                    }
 
-                alert('Porcentajes actualizados');
-            });
+                    alert('Porcentajes actualizados');
+                });
+            }
         }
-
-        // FUNCIONES DE EXPORTACIÓN
-        window.exportSectionTxt = function(categoryKey, categoryName) {
-            const group = reports.filter(r => r.category === categoryKey);
-            if (group.length === 0) {
-                alert(`No hay reportes en la sección ${categoryName} para exportar.`);
-                return;
-            }
-
-            let textContent = `CIVIX SANTA MARTA - INFORME OFICIAL\n`;
-            textContent += `SECCIÓN: ${categoryName.toUpperCase()}\n`;
-            textContent += `Fecha: ${new Date().toLocaleDateString('es-CO')}\n`;
-            textContent += `Total casos: ${group.length}\n========================================\n\n`;
-
-            group.forEach((r, idx) => {
-                textContent += `${idx + 1}. Título: ${r.title}\n`;
-                textContent += `   Estado: ${r.status || 'Pendiente'}\n`;
-                textContent += `   Asignación: ${r.pct || 0}%\n`;
-                textContent += `   Ubicación: Lat ${r.lat}, Lng ${r.lng}\n`;
-                textContent += `   Detalle: ${r.desc}\n\n`;
-            });
-
-            const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `Civix_Informe_${categoryKey.replace('/', '_')}.txt`;
-            link.click();
-        };
-
-        window.exportSectionCsv = function(categoryKey, categoryName) {
-            const group = reports.filter(r => r.category === categoryKey);
-            if (group.length === 0) {
-                alert(`No hay reportes en la sección ${categoryName} para exportar.`);
-                return;
-            }
-
-            let csvContent = "\uFEFFID,Sección,Título,Estado,Porcentaje(%),Latitud,Longitud,Fecha,Descripción\n";
-            group.forEach(r => {
-                const cleanTitle = `"${(r.title || '').replace(/"/g, '""')}"`;
-                const cleanDesc = `"${(r.desc || '').replace(/"/g, '""')}"`;
-                csvContent += `"${r.id}","${r.category}",${cleanTitle},"${r.status || 'Pendiente'}","${r.pct || 0}","${r.lat}","${r.lng}","${r.date || ''}",${cleanDesc}\n`;
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `Civix_Reportes_${categoryKey.replace('/', '_')}.csv`;
-            link.click();
-        };
-
-        // EXPORTACIÓN A PDF VISUAL ORGANIZADO CON IMÁGENES EMBEBIDAS
-        window.exportSectionPdf = function(categoryKey, categoryName) {
-            const group = reports.filter(r => r.category === categoryKey);
-            if (group.length === 0) {
-                alert(`No hay reportes en la sección ${categoryName} para exportar.`);
-                return;
-            }
-
-            const printWin = window.open('', '_blank');
-            let htmlContent = `
-                <!DOCTYPE html>
-                <html lang="es">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Informe Civix - ${categoryName}</title>
-                    <style>
-                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 25px; color: #0f172a; background: #ffffff; }
-                        .header { text-align: center; border-bottom: 3px solid #4f46e5; padding-bottom: 12px; margin-bottom: 25px; }
-                        .header h1 { margin: 0; color: #4f46e5; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
-                        .header p { margin: 6px 0 0 0; color: #64748b; font-size: 13px; }
-                        .report-card { border: 1px solid #cbd5e1; border-radius: 10px; padding: 18px; margin-bottom: 25px; page-break-inside: avoid; background: #f8fafc; }
-                        .report-title { font-size: 16px; font-weight: bold; color: #0f172a; }
-                        .meta-info { font-size: 11px; color: #475569; margin: 8px 0 12px 0; display: flex; gap: 15px; flex-wrap: wrap; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px; }
-                        .badge { padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 10px; text-transform: uppercase; }
-                        .status-pendiente { background: #fef3c7; color: #d97706; border: 1px solid #f59e0b; }
-                        .status-proceso { background: #dbeafe; color: #1d4ed8; border: 1px solid #3b82f6; }
-                        .status-terminado { background: #d1fae5; color: #047857; border: 1px solid #10b981; }
-                        .desc { font-size: 13px; color: #334155; margin-bottom: 12px; line-height: 1.5; white-space: pre-line; }
-                        .img-container { text-align: center; margin-top: 12px; background: #0f172a; padding: 10px; border-radius: 8px; }
-                        .img-container img { max-width: 100%; max-height: 320px; border-radius: 6px; object-fit: contain; }
-                        @media print {
-                            .no-print { display: none !important; }
-                            body { padding: 0; }
-                            .report-card { border: 1px solid #94a3b8; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="no-print" style="margin-bottom: 20px; text-align: right;">
-                        <button onclick="window.print()" style="background: #10b981; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer;">
-                            🖨️ Imprimir / Guardar como PDF
-                        </button>
-                    </div>
-                    <div class="header">
-                        <h1>Civix Santa Marta - Informe Oficial</h1>
-                        <p>Sección: <strong>${categoryName}</strong> | Fecha de emisión: ${new Date().toLocaleDateString('es-CO')}</p>
-                    </div>
-            `;
-
-            group.forEach((r, idx) => {
-                let statusClass = 'status-pendiente';
-                if (r.status === 'Proceso') statusClass = 'status-proceso';
-                if (r.status === 'Terminado') statusClass = 'status-terminado';
-
-                htmlContent += `
-                    <div class="report-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div class="report-title">${idx + 1}. ${r.title}</div>
-                            <span class="badge ${statusClass}">${r.status || 'Pendiente'}</span>
-                        </div>
-                        <div class="meta-info">
-                            <span>📍 Lat: ${r.lat ? r.lat.toFixed(4) : 'N/A'}, Lng: ${r.lng ? r.lng.toFixed(4) : 'N/A'}</span>
-                            <span>📅 Fecha: ${r.date || 'N/A'}</span>
-                            <span>📊 Fondo asignado: ${r.pct || 0}%</span>
-                        </div>
-                        <div class="desc">${r.desc}</div>
-                        ${r.img ? `
-                            <div class="img-container">
-                                <img src="${r.img}" alt="Fotografía del incidente">
-                            </div>
-                        ` : '<div style="font-size: 11px; color: #94a3b8; font-style: italic;">Sin fotografía adjunta.</div>'}
-                    </div>
-                `;
-            });
-
-            htmlContent += `</body></html>`;
-            printWin.document.write(htmlContent);
-            printWin.document.close();
-        };
 
         function renderAdminPanel() {
             const pctContainer = document.getElementById('admin-reports-pct-inputs');
-            pctContainer.innerHTML = '';
-
-            reports.forEach(r => {
-                const row = document.createElement('div');
-                row.style.display = 'flex';
-                row.style.alignItems = 'center';
-                row.style.gap = '8px';
-                row.innerHTML = `
-                    <span style="font-size: 11px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.title}</span>
-                    <input type="number" class="admin-pct-input" data-id="${r.id}" value="${r.pct || 0}" min="0" max="100" style="width: 70px; padding: 6px;"> %
-                `;
-                pctContainer.appendChild(row);
-            });
-
-            const reportsGroupedContainer = document.getElementById('admin-reports-grouped-list');
-            reportsGroupedContainer.innerHTML = '';
-
-            const categories = [
-                { id: "Hueco/Vía", label: "🛣️ Huecos y Vías" },
-                { id: "Alumbrado", label: "💡 Alumbrado Público" },
-                { id: "Alcantarillado", label: "🚰 Alcantarillado y Agua" },
-                { id: "Parque/Espacio", label: "🌳 Parques y Espacios" },
-                { id: "Basura", label: "🗑️ Aseo y Basuras" },
-                { id: "Seguridad", label: "🛡️ Seguridad / Otros" }
-            ];
-
-            categories.forEach(cat => {
-                const groupReports = reports.filter(r => r.category === cat.id);
-                const groupCard = document.createElement('div');
-                groupCard.className = 'section-group-box';
-
-                let itemsHTML = '';
-                if(groupReports.length === 0) {
-                    itemsHTML = '<p style="font-size: 11px; color: var(--text-muted);">Sin reportes en esta sección.</p>';
-                } else {
-                    groupReports.forEach(r => {
-                        itemsHTML += `
-                            <div class="bank-card" style="margin-top: 6px; margin-bottom: 0;">
-                                <div style="flex: 1;">
-                                    <strong style="font-size: 11px;">${r.title}</strong>
-                                    <div style="font-size: 10px; color: var(--text-muted);">Estado: ${r.status || 'Pendiente'} | ${r.pct || 0}%</div>
-                                </div>
-                                <div style="display: flex; gap: 4px;">
-                                    <select class="status-select" data-id="${r.id}" style="padding: 4px; font-size: 10px;">
-                                        <option value="Pendiente" ${r.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                                        <option value="Proceso" ${r.status === 'Proceso' ? 'selected' : ''}>En Proceso</option>
-                                        <option value="Terminado" ${r.status === 'Terminado' ? 'selected' : ''}>Terminado</option>
-                                    </select>
-                                    <button class="btn-danger delete-report-btn" data-id="${r.id}" style="padding: 4px 8px;"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-
-                groupCard.innerHTML = `
-                    <div class="section-group-header">
-                        <span>${cat.label}</span>
-                        <span style="background: #1e293b; padding: 2px 8px; border-radius: 12px; font-size: 10px;">${groupReports.length}</span>
-                    </div>
-                    <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-                        <button type="button" onclick="exportSectionTxt('${cat.id}', '${cat.label}')" class="copy-btn" style="background: var(--primary); flex: 1; padding: 6px; font-size: 10px;">
-                            <i class="fa-solid fa-file-lines"></i> TXT
-                        </button>
-                        <button type="button" onclick="exportSectionCsv('${cat.id}', '${cat.label}')" class="copy-btn" style="background: #0284c7; flex: 1; padding: 6px; font-size: 10px;">
-                            <i class="fa-solid fa-file-excel"></i> Excel
-                        </button>
-                        <button type="button" onclick="exportSectionPdf('${cat.id}', '${cat.label}')" class="copy-btn" style="background: var(--accent); flex: 1; padding: 6px; font-size: 10px;">
-                            <i class="fa-solid fa-file-pdf"></i> PDF / Fotos
-                        </button>
-                    </div>
-                    ${itemsHTML}
-                `;
-                reportsGroupedContainer.appendChild(groupCard);
-            });
-
-            document.querySelectorAll('.status-select').forEach(select => {
-                select.addEventListener('change', async (e) => {
-                    const docId = e.target.getAttribute('data-id');
-                    await updateDoc(doc(db, "reports", docId), { status: e.target.value });
+            if (pctContainer) {
+                pctContainer.innerHTML = '';
+                reports.forEach(function(r) {
+                    const row = document.createElement('div');
+                    row.style.display = 'flex';
+                    row.style.alignItems = 'center';
+                    row.style.gap = '10px';
+                    row.innerHTML = 
+                        '<span style="font-size: 11px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + r.title + '</span>' +
+                        '<input type="number" class="admin-pct-input" data-id="' + r.id + '" value="' + (r.pct || 0) + '" min="0" max="100" style="width: 75px; padding: 6px 10px;"> %';
+                    pctContainer.appendChild(row);
                 });
-            });
-
-            document.querySelectorAll('.delete-report-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    if (confirm('¿Deseas eliminar este reporte?')) {
-                        const docId = e.currentTarget.getAttribute('data-id');
-                        await deleteDoc(doc(db, "reports", docId));
-                    }
-                });
-            });
-
-            const donationsList = document.getElementById('admin-donations-list');
-            donationsList.innerHTML = '';
-
-            if (donations.length === 0) {
-                donationsList.innerHTML = '<p style="font-size: 11px; color: var(--text-muted);">No hay aportes registrados.</p>';
             }
 
-            donations.forEach(d => {
-                const formatted = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(d.amount);
-                const item = document.createElement('div');
-                item.className = 'bank-card';
-                item.innerHTML = `
-                    <div>
-                        <strong style="font-size: 11px;">${d.donor}</strong> - ${formatted}
-                        <div style="font-size: 9px; color: var(--accent);">Ref: ${d.refCode || 'N/A'}</div>
-                    </div>
-                    <button class="btn-danger delete-donation-btn" data-id="${d.id}" style="padding: 4px 8px;"><i class="fa-solid fa-trash"></i></button>
-                `;
-                donationsList.appendChild(item);
-            });
+            const reportsGroupedContainer = document.getElementById('admin-reports-grouped-list');
+            if (reportsGroupedContainer) {
+                reportsGroupedContainer.innerHTML = '';
 
-            document.querySelectorAll('.delete-donation-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    if (confirm('¿Deseas eliminar este aporte?')) {
-                        const docId = e.currentTarget.getAttribute('data-id');
-                        await deleteDoc(doc(db, "donations", docId));
+                const categories = [
+                    { id: "Hueco/Vía", label: "🛣️ Vías y Huecos" },
+                    { id: "Alumbrado", label: "💡 Alumbrado Público" },
+                    { id: "Alcantarillado", label: "🚰 Alcantarillado y Agua" },
+                    { id: "Parque/Espacio", label: "🌳 Parques y Espacios Público" },
+                    { id: "Basura", label: "🗑️ Aseo y Basuras" },
+                    { id: "Seguridad", label: "🛡️ Seguridad / Otros" }
+                ];
+
+                categories.forEach(function(cat) {
+                    const groupReports = reports.filter(function(r) { return r.category === cat.id; });
+                    const groupCard = document.createElement('div');
+                    groupCard.style.background = 'rgba(9, 13, 22, 0.75)';
+                    groupCard.style.border = '1px solid var(--card-border)';
+                    groupCard.style.borderRadius = '16px';
+                    groupCard.style.padding = '16px';
+                    groupCard.style.boxShadow = '0 6px 16px rgba(0,0,0,0.3)';
+
+                    let itemsHTML = '';
+                    if(groupReports.length === 0) {
+                        itemsHTML = '<p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">Sin reportes registrados en esta sección.</p>';
+                    } else {
+                        groupReports.forEach(function(r) {
+                            const hasImgBtn = r.img ? '<button class="copy-btn download-single-photo-btn" data-img="' + r.img + '" data-title="' + r.title + '" style="padding: 5px 8px; background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.4);"><i class="fa-solid fa-download"></i> Foto</button>' : '';
+
+                            itemsHTML += 
+                                '<div class="bank-card" style="margin-top: 8px; margin-bottom: 0;">' +
+                                    '<div style="flex: 1;">' +
+                                        '<strong style="font-size: 11px;">' + r.title + '</strong>' +
+                                        '<div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Estado: ' + (r.status || 'Pendiente') + ' | ' + (r.pct || 0) + '%</div>' +
+                                    '</div>' +
+                                    '<div style="display: flex; gap: 6px; align-items: center;">' +
+                                        hasImgBtn +
+                                        '<select class="status-select" data-id="' + r.id + '" style="padding: 5px 8px; font-size: 10px;">' +
+                                            '<option value="Pendiente"' + (r.status === 'Pendiente' ? ' selected' : '') + '>Pendiente</option>' +
+                                            '<option value="Proceso"' + (r.status === 'Proceso' ? ' selected' : '') + '>En Proceso</option>' +
+                                            '<option value="Terminado"' + (r.status === 'Terminado' ? ' selected' : '') + '>Terminado</option>' +
+                                        '</select>' +
+                                        '<button class="btn-danger delete-report-btn" data-id="' + r.id + '" style="padding: 5px 10px;"><i class="fa-solid fa-trash"></i></button>' +
+                                    '</div>' +
+                                '</div>';
+                        });
                     }
+
+                    // CABECERA Y BOTONES DE DESCARGA PROPIOS DE CADA SECCIÓN
+                    groupCard.innerHTML = 
+                        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; margin-bottom: 10px;">' +
+                            '<div>' +
+                                '<span style="font-size:13px; font-weight:800; color:var(--accent); display:block;">' + cat.label + '</span>' +
+                                '<span style="font-size:10px; color:var(--text-muted);">' + groupReports.length + ' reportes en esta sección</span>' +
+                            '</div>' +
+                            '<div style="display:flex; gap:6px; flex-wrap:wrap;">' +
+                                '<button class="copy-btn category-excel-btn" data-cat="' + cat.id + '" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4); font-size: 10px; padding: 6px 10px;"><i class="fa-solid fa-file-excel"></i> Excel</button>' +
+                                '<button class="copy-btn category-pdf-btn" data-cat="' + cat.id + '" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); font-size: 10px; padding: 6px 10px;"><i class="fa-solid fa-file-pdf"></i> PDF</button>' +
+                                '<button class="copy-btn category-photos-btn" data-cat="' + cat.id + '" style="background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.4); font-size: 10px; padding: 6px 10px;"><i class="fa-solid fa-images"></i> Fotos</button>' +
+                            '</div>' +
+                        '</div>' +
+                        itemsHTML;
+
+                    reportsGroupedContainer.appendChild(groupCard);
                 });
-            });
+
+                // LISTENERS PARA LOS BOTONES DE CADA SECCIÓN
+                document.querySelectorAll('.category-excel-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        const cat = e.currentTarget.getAttribute('data-cat');
+                        window.exportCategoryToExcel(cat);
+                    });
+                });
+
+                document.querySelectorAll('.category-pdf-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        const cat = e.currentTarget.getAttribute('data-cat');
+                        window.exportCategoryToPDF(cat);
+                    });
+                });
+
+                document.querySelectorAll('.category-photos-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        const cat = e.currentTarget.getAttribute('data-cat');
+                        window.downloadCategoryPhotos(cat);
+                    });
+                });
+
+                document.querySelectorAll('.download-single-photo-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        const imgSrc = e.currentTarget.getAttribute('data-img');
+                        const title = e.currentTarget.getAttribute('data-title');
+                        window.downloadPhoto(imgSrc, title);
+                    });
+                });
+
+                document.querySelectorAll('.status-select').forEach(function(select) {
+                    select.addEventListener('change', async function(e) {
+                        const docId = e.target.getAttribute('data-id');
+                        await updateDoc(doc(db, "reports", docId), { status: e.target.value });
+                    });
+                });
+
+                document.querySelectorAll('.delete-report-btn').forEach(function(btn) {
+                    btn.addEventListener('click', async function(e) {
+                        if (confirm('¿Deseas eliminar este reporte?')) {
+                            const docId = e.currentTarget.getAttribute('data-id');
+                            await deleteDoc(doc(db, "reports", docId));
+                        }
+                    });
+                });
+            }
+
+            const adminExpensesList = document.getElementById('admin-expenses-list');
+            if (adminExpensesList) {
+                adminExpensesList.innerHTML = '';
+                if (expenses.length === 0) {
+                    adminExpensesList.innerHTML = '<p style="font-size: 11px; color: var(--text-muted);">No hay comprobantes de gastos subidos.</p>';
+                }
+
+                expenses.forEach(function(exp) {
+                    const formatted = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(exp.amount);
+                    const item = document.createElement('div');
+                    item.className = 'bank-card';
+                    item.innerHTML = 
+                        '<div>' +
+                            '<strong style="font-size: 11px; color: var(--text-main);">' + exp.title + '</strong> - <span style="color: var(--danger); font-weight: 800;">' + formatted + '</span>' +
+                            '<div style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">' + exp.desc + ' | ' + exp.date + '</div>' +
+                        '</div>' +
+                        '<button class="btn-danger delete-expense-btn" data-id="' + exp.id + '" style="padding: 5px 10px;"><i class="fa-solid fa-trash"></i></button>';
+                    adminExpensesList.appendChild(item);
+                });
+
+                document.querySelectorAll('.delete-expense-btn').forEach(function(btn) {
+                    btn.addEventListener('click', async function(e) {
+                        if (confirm('¿Deseas eliminar este comprobante de gasto?')) {
+                            const docId = e.currentTarget.getAttribute('data-id');
+                            await deleteDoc(doc(db, "expenses", docId));
+                        }
+                    });
+                });
+            }
+
+            const donationsList = document.getElementById('admin-donations-list');
+            if (donationsList) {
+                donationsList.innerHTML = '';
+                if (donations.length === 0) {
+                    donationsList.innerHTML = '<p style="font-size: 11px; color: var(--text-muted);">No hay aportes registrados.</p>';
+                }
+
+                donations.forEach(function(d) {
+                    const formatted = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(d.amount);
+                    const item = document.createElement('div');
+                    item.className = 'bank-card';
+                    item.innerHTML = 
+                        '<div>' +
+                            '<strong style="font-size: 11px;">' + d.donor + '</strong> - <span style="color: var(--accent); font-weight: 800;">' + formatted + '</span>' +
+                            '<div style="font-size: 9px; color: var(--accent); margin-top: 2px;">Ref: ' + (d.refCode || 'N/A') + '</div>' +
+                        '</div>' +
+                        '<button class="btn-danger delete-donation-btn" data-id="' + d.id + '" style="padding: 5px 10px;"><i class="fa-solid fa-trash"></i></button>';
+                    donationsList.appendChild(item);
+                });
+
+                document.querySelectorAll('.delete-donation-btn').forEach(function(btn) {
+                    btn.addEventListener('click', async function(e) {
+                        if (confirm('¿Deseas eliminar este aporte?')) {
+                            const docId = e.currentTarget.getAttribute('data-id');
+                            await deleteDoc(doc(db, "donations", docId));
+                        }
+                    });
+                });
+            }
         }
     </script>
 </body>
